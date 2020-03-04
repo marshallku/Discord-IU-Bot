@@ -21,15 +21,21 @@ client.on("message", msg => {
 
     if (content.startsWith("지은아")) {
         content = content.slice(4);
+
+        // Help
         if (content === "도와줘") {
-            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다.\n안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다.\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
+
+        // Greeting
         if (content === "안녕") {
             msg.react("💜")
             .then(() => {
                 msg.channel.send(pickImg(files.hi));
             })
         }
+
+        // Sending GIFs(Videos)
         if (content === "ㅇㅋ") {
             msg.channel.send(pickImg(files.ok));
         }
@@ -48,14 +54,25 @@ client.on("message", msg => {
         if (content === "열받네") {
             msg.channel.send(pickImg(files.angry));
         }
-        if (content === "유튜브") {
-            msg.channel.send("https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww");
-        }
+
+        // Info
         if (content === "인스타") {
             msg.channel.send("https://www.instagram.com/dlwlrma/");
         }
+        if (content === "유튜브") {
+            msg.channel.send("https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww");
+        }
+
+        // Extra Functions
         if (content.startsWith("말해 ")) {
             msg.channel.send(content.replace("말해 ", ""));
+        }
+        if (content === "주사위") {
+            msg.reply(`결과는 : ${Math.floor(Math.random() * 5 + 1)}`);
+        }
+        if (content === "동전") {
+            const result = Math.round(Math.random());
+            msg.reply(`${result ? "앞" : "뒤"}`);
         }
     }
 });
