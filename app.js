@@ -24,7 +24,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다.\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting
@@ -68,11 +68,15 @@ client.on("message", msg => {
             msg.channel.send(content.replace("말해 ", ""));
         }
         if (content === "주사위") {
-            msg.reply(`결과는 : ${Math.floor(Math.random() * 5 + 1)}`);
+            const result = Math.floor(Math.random() * 5 + 1);
+            msg.reply(`${result === 1 ? "⚀ (1)" : result === 2 ? "⚁ (2)" : result === 3 ? "⚂ (3)" : result === 4 ? "⚃ (4)" : result === 5 ? "⚄ (5)" : "⚅ (6)"}`);
         }
         if (content === "동전") {
             const result = Math.round(Math.random());
             msg.reply(`${result ? "앞" : "뒤"}`);
+        }
+        if (content === "집합시켜") {
+            msg.channel.send("@everyone 집합")
         }
     }
 });
