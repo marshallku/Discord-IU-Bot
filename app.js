@@ -24,7 +24,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting
@@ -49,7 +49,7 @@ client.on("message", msg => {
             msg.channel.send(pickImg(files.good));
         }
         if (content === "헉") {
-            msg.channel.send(pickImg(files.surprised));
+            msg.channel.send(pickImg(files.surprised));user
         }
         if (content === "열받네") {
             msg.channel.send(pickImg(files.angry));
@@ -65,7 +65,13 @@ client.on("message", msg => {
 
         // Extra Functions
         if (content.startsWith("말해 ")) {
-            msg.channel.send(content.replace("말해 ", ""));
+            if (content.slice(-3) === "-지워") {
+                msg.delete();
+                msg.channel.send(content.slice(0, -3).replace("말해 ", ""));
+            }
+            else {
+                msg.channel.send(content.replace("말해 ", ""));
+            }
         }
         if (content === "주사위") {
             const result = Math.floor(Math.random() * 5 + 1);
@@ -76,7 +82,7 @@ client.on("message", msg => {
             msg.reply(`${result ? "앞" : "뒤"}`);
         }
         if (content === "집합시켜") {
-            msg.channel.send("@everyone 집합")
+            msg.channel.send(`@everyone ${msg.author}님이 집합하시랍니다.`)
         }
     }
 });
