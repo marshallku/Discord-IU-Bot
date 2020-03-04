@@ -17,34 +17,34 @@ client.on("message", msg => {
     if (content[0] === "!") {
         content = content.slice(1);
         if (content === "help") {
-            msg.reply("\n!명령어 구조로 이루어져있습니다.\n!echo 문자 : 봇이 한 말을 따라합니다.\n!지은아,!ㅇㅋ,!ㅠㅠ,!ㅋㅋ,!굿,!헉,!열받네")
+            msg.channel.send("\n!명령어 구조로 이루어져있습니다.\n!echo 문자 : 봇이 한 말을 따라합니다.\n!지은아,!ㅇㅋ,!ㅠㅠ,!ㅋㅋ,!굿,!헉,!열받네")
         }
         if (content === "지은아") {
             msg.react("💜")
             .then(() => {
-                msg.reply(pickImg(files.hi));
+                msg.channel.send(pickImg(files.hi));
             })
         }
         if (content === "ㅇㅋ") {
-            msg.reply(pickImg(files.ok));
+            msg.channel.send(pickImg(files.ok));
         }
         if (content === "ㅠㅠ") {
-            msg.reply(pickImg(files.cry))
+            msg.channel.send(pickImg(files.cry))
         }
         if (content === "ㅋㅋ") {
-            msg.reply(pickImg(files.laugh))
+            msg.channel.send(pickImg(files.laugh))
         }
         if (content === "굿") {
-            msg.reply(pickImg(files.good))
+            msg.channel.send(pickImg(files.good))
         }
         if (content === "헉") {
-            msg.reply(pickImg(files.surprised))
+            msg.channel.send(pickImg(files.surprised))
         }
         if (content === "열받네") {
-            msg.reply(pickImg(files.angry))
+            msg.channel.send(pickImg(files.angry))
         }
         if (content.startsWith("echo ")) {
-            msg.reply(content.replace("echo ", ""))
+            msg.channel.send(content.replace("echo ", ""))
         }
     }
 });
