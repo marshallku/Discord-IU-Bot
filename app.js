@@ -70,7 +70,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저]\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -116,7 +116,7 @@ client.on("message", msg => {
             .then(a => {
                 const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
                 const recentPost = media.edges[0].node;
-                const attachment = new MessageAttachment(recentPost.thumbnail_src);
+                const attachment = new MessageAttachment(recentPost.display_url);
                 const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
 
                 msg.channel.send(attachment)
