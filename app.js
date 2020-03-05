@@ -174,7 +174,6 @@ client.on("message", msg => {
 
         // Moderation
         if (content.startsWith("역할")) {
-            if (!msg.member.hasPermission("MANAGE_MEMBERS")) return msg.reply("수행할 권한이 없는 명령입니다!");
             if (!user) return msg.reply("누굴요?");
 
             if (member) {
@@ -191,7 +190,7 @@ client.on("message", msg => {
                     else {
                         member.roles.add(role.id)
                         .then(() => {
-                            msg.channel.send(`축하합니다! \`\`@${member.user.username}\`\`님! \`\`${role.name}\`\` 역할을 부여받았어요!`)
+                            msg.channel.send(`축하합니다! ${sliced[2]} 님! \`\`${role.name}\`\` 역할을 부여받았어요!`)
                         })
                         .catch(err => {
                             console.log(err);
@@ -203,7 +202,7 @@ client.on("message", msg => {
                     if (member.roles.cache.has(role.id)) {
                         member.roles.remove(role.id)
                         .then(() => {
-                            msg.channel.send(`\`\`@${member.user.username}\`\` 님에게서 \`\`${role.name}\`\` 역할을 삭제했습니다.`)
+                            msg.channel.send(`${sliced[2]} 님에게서 \`\`${role.name}\`\` 역할을 삭제했습니다.`)
                         })
                         .catch(err => {
                             console.log(err);
@@ -220,7 +219,6 @@ client.on("message", msg => {
             }
         }
         if (content.startsWith("밴") || content.startsWith("내쫓아")) {
-            if (!msg.member.hasPermission("MANAGE_MEMBERS")) return msg.reply("수행할 권한이 없는 명령입니다!");
             if (user) {
                 const reason = content.match(/ /g)[1];
                 if (member) {
