@@ -281,7 +281,7 @@ client.on("message", msg => {
                         .then(() => {
                             const filter = m => msg.author.id === m.author.id;
 
-                            msg.channel.awaitMessages(filter, { time: 100, max: 1, errors: ['time'] })
+                            msg.channel.awaitMessages(filter, { time: 10000, max: 1, errors: ['time'] })
                             .then(reply => {
                                 const result = reply.first().content;
                                 if (result === "응" || result === "ㅇㅇ") {
@@ -310,7 +310,7 @@ client.on("message", msg => {
                         .then(() => {
                             const filter = m => msg.author.id === m.author.id;
 
-                            msg.channel.awaitMessages(filter, { time: 100, max: 1, errors: ['time'] })
+                            msg.channel.awaitMessages(filter, { time: 10000, max: 1, errors: ['time'] })
                             .then(reply => {
                                 const result = reply.first().content;
                                 if (result === "응" || result === "ㅇㅇ") {
