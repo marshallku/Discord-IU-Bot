@@ -71,7 +71,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n역할 : 역할 [행동(추가 / 삭제)] [@유저] [역할 이름]\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -111,19 +111,29 @@ client.on("message", msg => {
         // Info
         if (content === "인스타") {
             fetch("https://www.instagram.com/dlwlrma/")
-            .then(a => {
-                return a.text()
+            .then(response => {
+                if (response.status === 200) {
+                    return a.text()
+                }
+                else {
+                    return false
+                }
             })
             .then(a => {
-                const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
-                const recentPost = media.edges[0].node;
-                const attachment = new MessageAttachment(recentPost.display_url);
-                const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
+                if (a) {
+                    const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
+                    const recentPost = media.edges[0].node;
+                    const attachment = new MessageAttachment(recentPost.display_url);
+                    const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
 
-                msg.channel.send(attachment)
-                .then(() => {
-                    msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
-                })
+                    msg.channel.send(attachment)
+                    .then(() => {
+                        msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                    })
+                }
+                else {
+                    msg.channel.send("https://www.instagram.com/dlwlrma/")
+                }
             });            
         }
         if (content === "유튜브") {
