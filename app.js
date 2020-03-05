@@ -1,5 +1,6 @@
 const {Client, MessageAttachment} = require('discord.js');
 const fetch = require("node-fetch");
+const crypto = require("crypto");
 const token = require("./token.json");
 const files = require("./files.json");
 const client = new Client();
@@ -171,16 +172,36 @@ client.on("message", msg => {
                 msg.reply("지은아 정렬해줘 ``[배열]``로 정렬할 수 있어요.")
             }
         }
+        if (content.startsWith("암호")) {
+            const split = content.split(" ");
+            const action = split[1];
+
+            if (action === "생성") {
+                const cipher = crypto.createCipher("aes-256-cbc", "key");
+                let encrypted = cipher.update(split.slice(2).join(" "), "utf8", "base64");
+                encrypted += cipher.final("base64");
+                msg.reply(encrypted);
+            }
+            else if (action === "해독") {
+                const decipher = crypto.createDecipher("aes-256-cbc", "key");
+                let decrypted = decipher.update(split[2], "base64", "utf8");
+                decrypted += decipher.final("utf8");
+                msg.reply(decrypted);
+            }
+            else {
+                msg.reply("암호 [행동(생성, 해독)] [문자열]로 암호를 생성하고 해독할 수 있어요.")
+            }
+        }
 
         // Moderation
         if (content.startsWith("역할")) {
             if (!user) return msg.reply("누굴요?");
 
             if (member) {
-                const sliced = content.split(" ");
-                const action = sliced[1];
-                if (!action || !sliced[2] || !sliced[3]) return msg.reply("역할 [행동(추가 / 삭제)] [@유저] [역할 이름]으로 사용하실 수 있어요.");
-                const role = msg.guild.roles.cache.find(role => role.name === sliced.slice(3).join(" "));
+                const split = content.split(" ");
+                const action = split[1];
+                if (!action || !split[2] || !split[3]) return msg.reply("역할 [행동(추가 / 삭제)] [@유저] [역할 이름]으로 사용하실 수 있어요.");
+                const role = msg.guild.roles.cache.find(role => role.name === split.slice(3).join(" "));
                 if (!role) return msg.reply("그런 역할은 없어요. 😥");
 
                 if (action === "추가") {
@@ -190,7 +211,7 @@ client.on("message", msg => {
                     else {
                         member.roles.add(role.id)
                         .then(() => {
-                            msg.channel.send(`축하합니다! ${sliced[2]} 님! \`\`${role.name}\`\` 역할을 부여받았어요!`)
+                            msg.channel.send(`축하합니다! ${split[2]} 님! \`\`${role.name}\`\` 역할을 부여받았어요!`)
                         })
                         .catch(err => {
                             console.log(err);
@@ -202,7 +223,7 @@ client.on("message", msg => {
                     if (member.roles.cache.has(role.id)) {
                         member.roles.remove(role.id)
                         .then(() => {
-                            msg.channel.send(`${sliced[2]} 님에게서 \`\`${role.name}\`\` 역할을 삭제했습니다.`)
+                            msg.channel.send(`${split[2]} 님에게서 \`\`${role.name}\`\` 역할을 삭제했습니다.`)
                         })
                         .catch(err => {
                             console.log(err);
@@ -212,6 +233,9 @@ client.on("message", msg => {
                     else {
                         msg.reply("그런 역할은 부여되어 있지 않네요.")
                     }
+                }
+                if (action === "확인") {
+
                 }
             }
             else {
@@ -223,27 +247,61 @@ client.on("message", msg => {
                 const reason = content.match(/ /g)[1];
                 if (member) {
                     if (content.startsWith("밴")) {
-                        member
-                        .ban({
-                            reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
-                        })
+                        msg.reply("정말 진행하시겠어요?\n응 혹은 ㅇㅇ을 입력하시면 계속 진행합니다.")
                         .then(() => {
-                            msg.reply(`${user.tag}을(를) 밴했어요.`)
-                        })
-                        .catch(() => {
-                            msg.reply("이 사람은 밴할 수 없네요.")
+                            const filter = m => msg.author.id === m.author.id;
+
+                            msg.channel.awaitMessages(filter, { time: 60000, max: 1, errors: ['time'] })
+                            .then(reply => {
+                                const result = reply.first().content;
+                                if (result === "응" || result === "ㅇㅇ") {
+                                    member
+                                    .ban({
+                                        reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
+                                    })
+                                    .then(() => {
+                                        msg.reply(`${user.tag}을(를) 밴했어요.`)
+                                    })
+                                    .catch(() => {
+                                        msg.reply("이 사람은 밴할 수 없네요.")
+                                    })
+                                }
+                                else {
+                                    msg.reply("작업을 취소합니다.")
+                                }
+                            })
+                            .catch(() => {
+                                msg.reply("대답하지 않으셨으니 없던 일로 할게요.")
+                            })
                         })
                     }
                     else {
-                        member
-                        .kick({
-                            reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
-                        })
+                        msg.reply("정말 진행하시겠어요?\n응 혹은 ㅇㅇ을 입력하시면 계속 진행합니다.")
                         .then(() => {
-                            msg.reply(`${user.tag}을(를) 내쫓았어요.`)
-                        })
-                        .catch(() => {
-                            msg.reply("이 사람은 내쫓을 수 없네요.")
+                            const filter = m => msg.author.id === m.author.id;
+
+                            msg.channel.awaitMessages(filter, { time: 60000, max: 1, errors: ['time'] })
+                            .then(reply => {
+                                const result = reply.first().content;
+                                if (result === "응" || result === "ㅇㅇ") {
+                                    member
+                                    .kick({
+                                        reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
+                                    })
+                                    .then(() => {
+                                        msg.reply(`${user.tag}을(를) 내쫓았어요.`)
+                                    })
+                                    .catch(() => {
+                                        msg.reply("이 사람은 내쫓을 수 없네요.")
+                                    })
+                                }
+                                else {
+                                    msg.reply("작업을 취소합니다.")
+                                }
+                            })
+                            .catch(() => {
+                                msg.reply("대답하지 않으셨으니 없던 일로 할게요.")
+                            })
                         })
                     }
                 }
