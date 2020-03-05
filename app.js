@@ -2,13 +2,14 @@ const {Client, MessageAttachment} = require('discord.js');
 const fetch = require("node-fetch");
 const token = require("./token.json");
 const files = require("./files.json");
-
 const client = new Client();
 
-const pickImg = array => {
-    return array[Math.round(Math.random() * (array.length - 1))].replace("[gfy]", "https://giant.gfycat.com/").replace("[zgfy]", "https://zippy.gfycat.com/").replace("[ten]", "https://tenor.com/view/").replace("[fgfy]", "https://fat.gfycat.com/").replace("[tgfy]", "https://thumbs.gfycat.com/");
+const pickRandom = array => {
+    return array[Math.round(Math.random() * (array.length - 1))];
 };
-
+const pickImg = array => {
+    return pickRandom(array).replace("[gfy]", "https://giant.gfycat.com/").replace("[zgfy]", "https://zippy.gfycat.com/").replace("[ten]", "https://tenor.com/view/").replace("[fgfy]", "https://fat.gfycat.com/").replace("[tgfy]", "https://thumbs.gfycat.com/");
+};
 const quickSort = (arr, l, r) => {
     let i;
 
@@ -22,7 +23,6 @@ const quickSort = (arr, l, r) => {
 
     return arr
 };
-
 const partition = (arr, l, r) => {
     let i = l,
         j = r,
@@ -36,7 +36,6 @@ const partition = (arr, l, r) => {
     }
     return arr[l] = arr[j], arr[j] = pivot, j
 };
-
 const parse = raw => {
     try {
         return JSON.parse(raw);
@@ -70,7 +69,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -128,6 +127,9 @@ client.on("message", msg => {
         }
         if (content === "유튜브") {
             msg.channel.send("https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww");
+        }
+        if (content === "뮤비" || content === "뮤직비디오") {
+            msg.channel.send(`https://youtu.be/${pickRandom(files.mv)}`)
         }
 
         // Extra Functions
