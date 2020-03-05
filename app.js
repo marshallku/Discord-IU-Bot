@@ -1,10 +1,49 @@
-const Discord = require("discord.js");
-const client = new Discord.Client();
+const {Client, MessageAttachment} = require('discord.js');
+const fetch = require("node-fetch");
 const token = require("./token.json");
 const files = require("./files.json");
 
+const client = new Client();
+
 const pickImg = array => {
     return array[Math.round(Math.random() * (array.length - 1))].replace("[gfy]", "https://giant.gfycat.com/").replace("[zgfy]", "https://zippy.gfycat.com/").replace("[ten]", "https://tenor.com/view/").replace("[fgfy]", "https://fat.gfycat.com/").replace("[tgfy]", "https://thumbs.gfycat.com/");
+};
+
+const quickSort = (arr, l, r) => {
+    let i;
+
+    (l < r) &&
+    (
+        i =  partition(arr, l, r),
+
+        quickSort(arr, l, i - 1),
+        quickSort(arr, i + 1, r)
+    )
+
+    return arr
+};
+
+const partition = (arr, l, r) => {
+    let i = l,
+        j = r,
+        pivot = arr[l];
+
+    for (;i < j;)
+    {
+        for (;arr[j] > pivot;) j--;
+        for (;i < j && arr[i] <= pivot;) i++;
+        tmp = arr[i], arr[i] = arr[j], arr[j] = tmp
+    }
+    return arr[l] = arr[j], arr[j] = pivot, j
+};
+
+const parse = raw => {
+    try {
+        return JSON.parse(raw);
+    }
+    catch (err) {
+        return false;
+    }
 };
 
 client.on("ready", () => {
@@ -20,19 +59,31 @@ client.on("message", msg => {
     let content = msg.content;
 
     if (content.startsWith("지은아")) {
+        const author = msg.author;
         const user = msg.mentions.users.first();
         content = content.slice(4);
 
-        // Help
-        if (content === "도와줘") {
-            msg.channel.send("\n지은아 [명령어] 구조로 이루어져있습니다.\n말해 [문자] : 봇이 한 말을 따라합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+        // If user typed nothing
+        if (content === "") {
+            msg.reply("``지은아 도와줘`` 명령어를 이용해 명령어 목록을 볼 수 있어요.")
         }
 
-        // Greeting
+        // Help
+        if (content === "도와줘") {
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저]\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+        }
+
+        // Greeting, Farewell
         if (content === "안녕") {
             msg.react("💜")
             .then(() => {
                 msg.channel.send(pickImg(files.hi));
+            })
+        }
+        if (content === "잘 가") {
+            msg.react("💜")
+            .then(() => {
+                msg.channel.send(pickImg(files.bye));
             })
         }
 
@@ -50,7 +101,7 @@ client.on("message", msg => {
             msg.channel.send(pickImg(files.good));
         }
         if (content === "헉") {
-            msg.channel.send(pickImg(files.surprised));user
+            msg.channel.send(pickImg(files.surprised));
         }
         if (content === "열받네") {
             msg.channel.send(pickImg(files.angry));
@@ -58,7 +109,22 @@ client.on("message", msg => {
 
         // Info
         if (content === "인스타") {
-            msg.channel.send("https://www.instagram.com/dlwlrma/");
+            fetch("https://www.instagram.com/dlwlrma/")
+            .then(a => {
+                return a.text()
+            })
+            .then(a => {
+                const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
+                const recentPost = media.edges[0].node;
+                const attachment = new MessageAttachment(recentPost.thumbnail_src);
+                const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
+
+                msg.channel.send(attachment)
+                .then(() => {
+                    msg.channel.send(recentPostComment);
+                    msg.channel.send("더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!");
+                })
+            });            
         }
         if (content === "유튜브") {
             msg.channel.send("https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww");
@@ -83,7 +149,24 @@ client.on("message", msg => {
             msg.reply(`${result ? "앞" : "뒤"}`);
         }
         if (content === "집합시켜") {
-            msg.channel.send(`@everyone ${msg.author}님이 집합하시랍니다.`)
+            msg.channel.send(`@everyone ${author}님이 집합하시랍니다!`)
+        }
+        if (content.startsWith("정렬해줘")) {
+            const array = content.match(/\[(.*)\]/g)[0];
+            if (array) {
+                const parsed = parse(array) ;
+
+                if (parsed) {
+                    const sorted = quickSort(parsed, 0, parsed.length - 1);
+                    msg.reply(`[${sorted}]`);
+                }
+                else {
+                    msg.reply("정렬할 수 없는 배열이에요. 😥")
+                }
+            }
+            else {
+                msg.reply("지은아 정렬해줘 ``[배열]``로 정렬할 수 있어요.")
+            }
         }
 
         // Kick & Ban
