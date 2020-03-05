@@ -20,6 +20,7 @@ client.on("message", msg => {
     let content = msg.content;
 
     if (content.startsWith("지은아")) {
+        const user = msg.mentions.users.first();
         content = content.slice(4);
 
         // Help
@@ -83,6 +84,46 @@ client.on("message", msg => {
         }
         if (content === "집합시켜") {
             msg.channel.send(`@everyone ${msg.author}님이 집합하시랍니다.`)
+        }
+
+        // Kick & Ban
+        if (content.startsWith("밴") || content.startsWith("내쫓아")) {
+            if (user) {
+                const member = msg.guild.member(user);
+                const reason = content.match(/ /g)[1];
+                if (member) {
+                    if (content.startsWith("밴")) {
+                        member
+                        .ban({
+                            reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
+                        })
+                        .then(() => {
+                            msg.reply(`${user.tag}을(를) 밴했어요.`)
+                        })
+                        .catch(() => {
+                            msg.reply("이 사람은 밴할 수 없네요.")
+                        })
+                    }
+                    else {
+                        member
+                        .kick({
+                            reason: `${reason ? message.slice(message.lastIndexOf(" ")+1) : "나빴어"}`
+                        })
+                        .then(() => {
+                            msg.reply(`${user.tag}을(를) 내쫓았어요.`)
+                        })
+                        .catch(() => {
+                            msg.reply("이 사람은 내쫓을 수 없네요.")
+                        })
+                    }
+                }
+                else {
+                    msg.reply("그런 사람은 없는데요?")
+                }
+            }
+            else {
+                msg.reply("누굴요?")
+            }
         }
     }
 });
