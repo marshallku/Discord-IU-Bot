@@ -1,6 +1,7 @@
 const {Client, MessageAttachment} = require('discord.js');
 const fetch = require("node-fetch");
 const crypto = require("crypto");
+const ytdl = require('ytdl-core');
 const token = require("./token.json");
 const files = require("./files.json");
 const client = new Client();
@@ -29,10 +30,10 @@ const partition = (arr, l, r) => {
         j = r,
         pivot = arr[l];
 
-    for (;i < j;)
+    while (i < j)
     {
-        for (;arr[j] > pivot;) j--;
-        for (;i < j && arr[i] <= pivot;) i++;
+        while (arr[j] > pivot) j--;
+        while (i < j && arr[i] <= pivot) i++;
         tmp = arr[i], arr[i] = arr[j], arr[j] = tmp
     }
     return arr[l] = arr[j], arr[j] = pivot, j
@@ -104,7 +105,7 @@ client.on("message", msg => {
         if (content === "헉") {
             msg.channel.send(pickImg(files.surprised));
         }
-        if (content === "열받네") {
+        if (content === "열 받네" || content === "열받네") {
             msg.channel.send(pickImg(files.angry));
         }
 
@@ -113,7 +114,7 @@ client.on("message", msg => {
             fetch("https://www.instagram.com/dlwlrma/")
             .then(response => {
                 if (response.status === 200) {
-                    return a.text()
+                    return response.text()
                 }
                 else {
                     return false
@@ -141,6 +142,25 @@ client.on("message", msg => {
         }
         if (content === "뮤비" || content === "뮤직비디오") {
             msg.channel.send(`https://youtu.be/${pickRandom(files.mv)}`)
+        }
+
+        // Music
+        if (content.startsWith("재생해줘")) {
+            const uri = content.split(" ")[1];
+            if (!uri) return msg.reply("재생할 주소를 입력해주세요.");
+    
+            const voiceChannel = msg.member.voice.channel;
+    
+            if (!voiceChannel) {
+                return msg.reply("음성 채팅방에 들어가셔야 재생할 수 있어요.");
+            }
+    
+            voiceChannel.join().then(connection => {
+                const stream = ytdl(uri, {filter: "audioonly"});
+                const dispatcher = connection.play(stream);
+    
+                dispatcher.on("end", () => voiceChannel.leave());
+            });
         }
 
         // Extra Functions
@@ -261,7 +281,7 @@ client.on("message", msg => {
                         .then(() => {
                             const filter = m => msg.author.id === m.author.id;
 
-                            msg.channel.awaitMessages(filter, { time: 60000, max: 1, errors: ['time'] })
+                            msg.channel.awaitMessages(filter, { time: 100, max: 1, errors: ['time'] })
                             .then(reply => {
                                 const result = reply.first().content;
                                 if (result === "응" || result === "ㅇㅇ") {
@@ -290,7 +310,7 @@ client.on("message", msg => {
                         .then(() => {
                             const filter = m => msg.author.id === m.author.id;
 
-                            msg.channel.awaitMessages(filter, { time: 60000, max: 1, errors: ['time'] })
+                            msg.channel.awaitMessages(filter, { time: 100, max: 1, errors: ['time'] })
                             .then(reply => {
                                 const result = reply.first().content;
                                 if (result === "응" || result === "ㅇㅇ") {
