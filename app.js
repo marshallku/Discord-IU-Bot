@@ -60,6 +60,7 @@ client.on("message", msg => {
     if (content.startsWith("지은아")) {
         const author = msg.author;
         const user = msg.mentions.users.first();
+        const member = user && msg.guild.member(user);
         content = content.slice(4);
 
         // If user typed nothing
@@ -69,7 +70,7 @@ client.on("message", msg => {
 
         // Help
         if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 : 정렬해줘 [배열] 구조로 이루어져 있습니다.\n밴, 내쫓아 : 순서대로 ban, kick입니다. 내쫓아(밴) [@유저] [문자(밴 사유, 선택)]\n역할 : 역할 [행동(추가 / 삭제)] [@유저] [역할 이름]\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n게임 : 주사위, 동전\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -79,7 +80,7 @@ client.on("message", msg => {
                 msg.channel.send(pickImg(files.hi));
             })
         }
-        if (content === "잘 가") {
+        if (content === "잘 가" || content === "잘가") {
             msg.react("💜")
             .then(() => {
                 msg.channel.send(pickImg(files.bye));
@@ -120,8 +121,7 @@ client.on("message", msg => {
 
                 msg.channel.send(attachment)
                 .then(() => {
-                    msg.channel.send(recentPostComment);
-                    msg.channel.send("더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!");
+                    msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
                 })
             });            
         }
@@ -156,11 +156,12 @@ client.on("message", msg => {
         if (content.startsWith("정렬해줘")) {
             const array = content.match(/\[(.*)\]/g)[0];
             if (array) {
+                const start = new Date().getTime();
                 const parsed = parse(array) ;
 
                 if (parsed) {
                     const sorted = quickSort(parsed, 0, parsed.length - 1);
-                    msg.reply(`[${sorted}]`);
+                    msg.reply(`[${sorted}]\n정렬하는데 \`\`${new Date().getTime() - start}ms\`\`가 소요되었어요.`);
                 }
                 else {
                     msg.reply("정렬할 수 없는 배열이에요. 😥")
@@ -171,10 +172,56 @@ client.on("message", msg => {
             }
         }
 
-        // Kick & Ban
+        // Moderation
+        if (content.startsWith("역할")) {
+            if (!msg.member.hasPermission("MANAGE_MEMBERS")) return msg.reply("수행할 권한이 없는 명령입니다!");
+            if (!user) return msg.reply("누굴요?");
+
+            if (member) {
+                const sliced = content.split(" ");
+                const action = sliced[1];
+                if (!action || !sliced[2] || !sliced[3]) return msg.reply("역할 [행동(추가 / 삭제)] [@유저] [역할 이름]으로 사용하실 수 있어요.");
+                const role = msg.guild.roles.cache.find(role => role.name === sliced.slice(3).join(" "));
+                if (!role) return msg.reply("그런 역할은 없어요. 😥");
+
+                if (action === "추가") {
+                    if (member.roles.cache.has(role.id)) {
+                        msg.reply("이미 역할이 부여되어있네요.")
+                    }
+                    else {
+                        member.roles.add(role.id)
+                        .then(() => {
+                            msg.channel.send(`축하합니다! \`\`@${member.user.username}\`\`님! \`\`${role.name}\`\` 역할을 부여받았어요!`)
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            msg.reply("역할 부여에 실패했어요. 😥");
+                        })
+                    }
+                }
+                if (action === "삭제") {
+                    if (member.roles.cache.has(role.id)) {
+                        member.roles.remove(role.id)
+                        .then(() => {
+                            msg.channel.send(`\`\`@${member.user.username}\`\` 님에게서 \`\`${role.name}\`\` 역할을 삭제했습니다.`)
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            msg.reply("역할 삭제에 실패했어요. 😥");
+                        })
+                    }
+                    else {
+                        msg.reply("그런 역할은 부여되어 있지 않네요.")
+                    }
+                }
+            }
+            else {
+                msg.reply("그런 사람은 없어요. 😥")
+            }
+        }
         if (content.startsWith("밴") || content.startsWith("내쫓아")) {
+            if (!msg.member.hasPermission("MANAGE_MEMBERS")) return msg.reply("수행할 권한이 없는 명령입니다!");
             if (user) {
-                const member = msg.guild.member(user);
                 const reason = content.match(/ /g)[1];
                 if (member) {
                     if (content.startsWith("밴")) {
@@ -203,7 +250,7 @@ client.on("message", msg => {
                     }
                 }
                 else {
-                    msg.reply("그런 사람은 없는데요?")
+                    msg.reply("그런 사람은 없어요. 😥")
                 }
             }
             else {
