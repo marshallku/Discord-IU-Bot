@@ -2,7 +2,7 @@ const {Client, MessageAttachment} = require('discord.js');
 const fetch = require("node-fetch");
 const crypto = require("crypto");
 const ytdl = require('ytdl-core');
-const token = require("./token.json");
+const keys = require("./keys.json");
 const files = require("./files.json");
 const client = new Client();
 const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
@@ -222,6 +222,36 @@ client.on("message", msg => {
             }
         }
 
+        // weather
+        if (content === "날씨") {
+            const date = () => {
+                const now = new Date();
+                const format = number => {
+                    return `${number < 10 ? `0${number}` : number}`
+                };
+                let hhmm = 0;
+
+                if (now.getHours() <= 6) {
+                    now.setDate(now.getDate() - 1);
+                    hhmm = "1800"
+                }
+
+                const month = now.getMonth() + 1;
+                const date = now.getDate();
+                hhmm = hhmm ? hhmm : now.getHours() < 18 ? "0600" : "1800";
+
+                return `${now.getFullYear()}${format(month)}${format(date)}${hhmm}`
+            };
+
+            fetch(`http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst?serviceKey=${keys.weatherApi}&pageNo=1&numOfRows=10&dataType=JSON&stnId=108&tmFc=${date()}`)
+            .then(response => {
+                return response.json()
+            })
+            .then(data => {
+                msg.reply(data.response.body.items.item[0].wfSv)
+            })
+        }
+
         // mini games
         if (content === "주사위") {
             const result = Math.floor(Math.random() * 5 + 1);
@@ -397,4 +427,4 @@ client.on("message", msg => {
     }
 });
 
-client.login(token.token);
+client.login(keys.token);
