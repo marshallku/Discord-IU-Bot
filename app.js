@@ -5,6 +5,7 @@ const ytdl = require('ytdl-core');
 const token = require("./token.json");
 const files = require("./files.json");
 const client = new Client();
+const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
 
 const pickRandom = array => {
     return array[Math.round(Math.random() * (array.length - 1))];
@@ -51,7 +52,7 @@ client.on("ready", () => {
     console.log(`Logged in : ${client.user.tag}`);
     client.user.setPresence({
         activity: {
-            name: "명령어 확인 : 지은아 도와줘"
+            name: "지은아 도와줘 - 명령어 확인"
         }
     });
 });
@@ -67,7 +68,8 @@ client.on("message", msg => {
 
         // If user typed nothing
         if (content === "") {
-            msg.reply("``지은아 도와줘`` 명령어를 이용해 명령어 목록을 볼 수 있어요.")
+            const ranCat = files[pickRandom(gifCategory)];
+            msg.channel.send(pickImg(ranCat));
         }
 
         // Help
@@ -216,7 +218,12 @@ client.on("message", msg => {
                 const decipher = crypto.createDecipher("aes-256-cbc", "key");
                 let decrypted = decipher.update(split[2], "base64", "utf8");
                 decrypted += decipher.final("utf8");
-                msg.reply(decrypted);
+                if (decrypted) {
+                    msg.reply(decrypted);
+                }
+                else {
+                    msg.reply("복호화에 실패했어요. 😥")
+                }
             }
             else {
                 msg.reply("암호 [행동(생성, 해독)] [문자열]로 암호를 생성하고 해독할 수 있어요.")
