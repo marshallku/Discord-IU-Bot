@@ -175,14 +175,6 @@ client.on("message", msg => {
                 msg.channel.send(content.replace("말해 ", ""));
             }
         }
-        if (content === "주사위") {
-            const result = Math.floor(Math.random() * 5 + 1);
-            msg.reply(`${result === 1 ? "⚀ (1)" : result === 2 ? "⚁ (2)" : result === 3 ? "⚂ (3)" : result === 4 ? "⚃ (4)" : result === 5 ? "⚄ (5)" : "⚅ (6)"}`);
-        }
-        if (content === "동전") {
-            const result = Math.round(Math.random());
-            msg.reply(`${result ? "앞" : "뒤"}`);
-        }
         if (content === "집합시켜") {
             msg.channel.send(`@everyone ${author}님이 집합하시랍니다!`)
         }
@@ -230,6 +222,58 @@ client.on("message", msg => {
             }
         }
 
+        // mini games
+        if (content === "주사위") {
+            const result = Math.floor(Math.random() * 5 + 1);
+            msg.reply(`${result === 1 ? "⚀ (1)" : result === 2 ? "⚁ (2)" : result === 3 ? "⚂ (3)" : result === 4 ? "⚃ (4)" : result === 5 ? "⚄ (5)" : "⚅ (6)"}`);
+        }
+        if (content === "동전") {
+            const result = Math.round(Math.random());
+            msg.reply(`${result ? "앞" : "뒤"}`);
+        }
+        if (content === "가위바위보") {
+            const arr = ["✊", "✌️", "✋"];
+            const choose = Math.round(Math.random() * 2);
+            const filter = (reaction, user) => {
+                return arr.includes(reaction.emoji.name) && user.id === msg.author.id;
+            };
+
+            Promise.all([
+		        msg.react("✊"),
+		        msg.react("✌️"),
+		        msg.react("✋"),
+            ])
+            .catch(() => msg.reply("다음에 할래요."));
+
+            msg.awaitReactions(filter, { max: 1, time: 10000, errors: ["time"] })
+	        .then(collected => {
+                const reaction = collected.first();
+                msg.reply(`${
+                    reaction.emoji.name === "✊"
+                    ?
+                        choose === 0
+                        ? "✊ 비겼네요 😏"
+                        : choose === 1
+                            ? "✌️ 제가 졌어요 😥"
+                            : "✋ 제가 이겼네요 😁"
+                    : reaction.emoji.name === "✌️"
+                        ?
+                            choose === 0
+                            ? "✊ 제가 이겼네요 😁"
+                            : choose === 1
+                                ? "✌️ 비겼네요 😏"
+                                : "✋ 제가 졌어요 😥"
+                        :
+                            choose === 0
+                            ? "✊ 제가 졌어요 😥"
+                            : choose === 1
+                                ? "✌️ 제가 이겼네요 😁"
+                                : "✋ 비겼네요 😏"
+                }`);
+                
+	        });
+        
+        }
         // Moderation
         if (content.startsWith("역할")) {
             if (!user) return msg.reply("누굴요?");
