@@ -248,7 +248,7 @@ client.on("message", msg => {
                 return response.json()
             })
             .then(data => {
-                msg.reply(data.response.body.items.item[0].wfSv)
+                msg.channel.send(data.response.body.items.item[0].wfSv)
             })
         }
 
@@ -303,7 +303,7 @@ client.on("message", msg => {
                 
 	        });
         }
-        
+
         // Moderation
         if (content.startsWith("역할")) {
             if (!user) return msg.reply("누굴요?");
