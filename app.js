@@ -167,13 +167,18 @@ client.on("message", msg => {
         }
 
         // Extra Functions
-        else if (content.startsWith("말해 ")) {
-            if (content.slice(-3) === "-지워") {
-                msg.delete();
-                msg.channel.send(content.slice(0, -3).replace("말해 ", ""));
+        else if (content.startsWith("말해")) {
+            if (content.split(" ").length >= 3) {
+                if (content.slice(-3) === "-지워") {
+                    msg.delete();
+                    msg.channel.send(content.slice(0, -3).replace("말해 ", ""));
+                }
+                else {
+                    msg.channel.send(content.replace("말해 ", ""));
+                }
             }
             else {
-                msg.channel.send(content.replace("말해 ", ""));
+                msg.reply("``지은아 말해 [말할 내용]``이 올바른 사용법이에요.")
             }
         }
         else if (content === "집합시켜") {
@@ -194,7 +199,7 @@ client.on("message", msg => {
                 }
             }
             else {
-                msg.reply("지은아 정렬해줘 ``[배열]``로 정렬할 수 있어요.")
+                msg.reply("``지은아 정렬해줘 [배열]``로 정렬할 수 있어요.")
             }
         }
         else if (content.startsWith("암호")) {
