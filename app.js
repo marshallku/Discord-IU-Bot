@@ -58,6 +58,7 @@ client.on("ready", () => {
 });
 
 client.on("message", msg => {
+    if(msg.author.bot) return;
     let content = msg.content;
 
     if (content.startsWith("지은아")) {
@@ -73,18 +74,18 @@ client.on("message", msg => {
         }
 
         // Help
-        if (content === "도와줘") {
+        else if (content === "도와줘") {
             msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n게임 : 주사위, 동전, 가위바위보\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
-        if (content === "안녕") {
+        else if (content === "안녕") {
             msg.react("💜")
             .then(() => {
                 msg.channel.send(pickImg(files.hi));
             })
         }
-        if (content === "잘 가" || content === "잘가") {
+        else if (content === "잘 가" || content === "잘가") {
             msg.react("💜")
             .then(() => {
                 msg.channel.send(pickImg(files.bye));
@@ -92,27 +93,27 @@ client.on("message", msg => {
         }
 
         // Sending GIFs(Videos)
-        if (content === "ㅇㅋ") {
+        else if (content === "ㅇㅋ") {
             msg.channel.send(pickImg(files.ok));
         }
-        if (content === "ㅠㅠ") {
+        else if (content === "ㅠㅠ") {
             msg.channel.send(pickImg(files.cry));
         }
-        if (content === "ㅋㅋ") {
+        else if (content === "ㅋㅋ") {
             msg.channel.send(pickImg(files.laugh));
         }
-        if (content === "굿") {
+        else if (content === "굿") {
             msg.channel.send(pickImg(files.good));
         }
-        if (content === "헉") {
+        else if (content === "헉") {
             msg.channel.send(pickImg(files.surprised));
         }
-        if (content === "열 받네" || content === "열받네") {
+        else if (content === "열 받네" || content === "열받네") {
             msg.channel.send(pickImg(files.angry));
         }
 
         // Info
-        if (content === "인스타") {
+        else if (content === "인스타") {
             fetch("https://www.instagram.com/dlwlrma/")
             .then(response => {
                 if (response.status === 200) {
@@ -139,15 +140,15 @@ client.on("message", msg => {
                 }
             });            
         }
-        if (content === "유튜브") {
+        else if (content === "유튜브") {
             msg.channel.send("https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww");
         }
-        if (content === "뮤비" || content === "뮤직비디오") {
+        else if (content === "뮤비" || content === "뮤직비디오") {
             msg.channel.send(`https://youtu.be/${pickRandom(files.mv)}`)
         }
 
         // Music
-        if (content.startsWith("재생해줘")) {
+        else if (content.startsWith("재생해줘")) {
             const uri = content.split(" ")[1];
             if (!uri) return msg.reply("재생할 주소를 입력해주세요.");
     
@@ -166,7 +167,7 @@ client.on("message", msg => {
         }
 
         // Extra Functions
-        if (content.startsWith("말해 ")) {
+        else if (content.startsWith("말해 ")) {
             if (content.slice(-3) === "-지워") {
                 msg.delete();
                 msg.channel.send(content.slice(0, -3).replace("말해 ", ""));
@@ -175,10 +176,10 @@ client.on("message", msg => {
                 msg.channel.send(content.replace("말해 ", ""));
             }
         }
-        if (content === "집합시켜") {
+        else if (content === "집합시켜") {
             msg.channel.send(`@everyone ${author}님이 집합하시랍니다!`)
         }
-        if (content.startsWith("정렬해줘")) {
+        else if (content.startsWith("정렬해줘")) {
             const array = content.match(/\[(.*)\]/g)[0];
             if (array) {
                 const start = new Date().getTime();
@@ -196,7 +197,7 @@ client.on("message", msg => {
                 msg.reply("지은아 정렬해줘 ``[배열]``로 정렬할 수 있어요.")
             }
         }
-        if (content.startsWith("암호")) {
+        else if (content.startsWith("암호")) {
             const split = content.split(" ");
             const action = split[1];
 
@@ -223,7 +224,7 @@ client.on("message", msg => {
         }
 
         // weather
-        if (content === "날씨") {
+        else if (content === "날씨") {
             const date = () => {
                 const now = new Date();
                 const format = number => {
@@ -253,15 +254,15 @@ client.on("message", msg => {
         }
 
         // mini games
-        if (content === "주사위") {
+        else if (content === "주사위") {
             const result = Math.floor(Math.random() * 5 + 1);
             msg.reply(`${result === 1 ? "⚀ (1)" : result === 2 ? "⚁ (2)" : result === 3 ? "⚂ (3)" : result === 4 ? "⚃ (4)" : result === 5 ? "⚄ (5)" : "⚅ (6)"}`);
         }
-        if (content === "동전") {
+        else if (content === "동전") {
             const result = Math.round(Math.random());
             msg.reply(`${result ? "앞" : "뒤"}`);
         }
-        if (content === "가위바위보") {
+        else if (content === "가위바위보") {
             const arr = ["✊", "✌️", "✋"];
             const choose = Math.round(Math.random() * 2);
             const filter = (reaction, user) => {
@@ -305,7 +306,7 @@ client.on("message", msg => {
         }
 
         // Moderation
-        if (content.startsWith("역할")) {
+        else if (content.startsWith("역할")) {
             if (!user) return msg.reply("누굴요?");
 
             if (member) {
@@ -353,7 +354,7 @@ client.on("message", msg => {
                 msg.reply("그런 사람은 없어요. 😥")
             }
         }
-        if (content.startsWith("밴") || content.startsWith("내쫓아")) {
+        else if (content.startsWith("밴") || content.startsWith("내쫓아")) {
             if (user) {
                 const reason = content.match(/ /g)[1];
                 if (member) {
@@ -423,6 +424,9 @@ client.on("message", msg => {
             else {
                 msg.reply("누굴요?")
             }
+        }
+        else {
+            msg.reply("찾을 수 없는 명령어네요. 😥\n``지은아 도와줘`` 명령어를 이용해 명령어 목록을 확인할 수 있어요.")
         }
     }
 });
