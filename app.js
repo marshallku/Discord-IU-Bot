@@ -127,13 +127,34 @@ client.on("message", msg => {
                 if (a) {
                     const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
                     const recentPost = media.edges[0].node;
-                    const attachment = new MessageAttachment(recentPost.display_url);
                     const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
 
-                    msg.channel.send(attachment)
-                    .then(() => {
-                        msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
-                    })
+                    if (recentPost.is_video) {
+                        fetch(`https://www.instagram.com/p/${recentPost.shortcode}/`)
+                        .then(response => {
+                            if (response.status === 200) {
+                                return response.text()
+                            }
+                            else {
+                                return false
+                            }
+                        })
+                        .then(a => {
+                            const attachment = new MessageAttachment(a.slice(a.indexOf("video_url") + 12, a.indexOf("video_view_count") - 3).replace(/\\u0026/gm, "&"));
+
+                            msg.channel.send(attachment)
+                            .then(() => {
+                                msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                            })
+                        })
+                    }
+                    else {
+                        const attachment = new MessageAttachment(recentPost.display_url);
+                        msg.channel.send(attachment)
+                        .then(() => {
+                            msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                        })
+                    }
                 }
                 else {
                     msg.channel.send("https://www.instagram.com/dlwlrma/")
