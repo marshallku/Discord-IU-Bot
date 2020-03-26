@@ -75,7 +75,7 @@ client.on("message", msg => {
 
         // Help
         else if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 : 최근 인스타그램을 게시글을 표시해줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n게임 : 주사위, 동전, 가위바위보\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n게임 : 주사위, 동전, 가위바위보\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -113,7 +113,7 @@ client.on("message", msg => {
         }
 
         // Info
-        else if (content === "인스타") {
+        else if (content.startsWith("인스타")) {
             fetch("https://www.instagram.com/dlwlrma/")
             .then(response => {
                 if (response.status === 200) {
@@ -126,11 +126,16 @@ client.on("message", msg => {
             .then(a => {
                 if (a) {
                     const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
-                    const recentPost = media.edges[0].node;
-                    const recentPostComment = recentPost.edge_media_to_caption.edges[0].node.text;
+                    let target = content.split(" ")[1];
 
-                    if (recentPost.is_video) {
-                        fetch(`https://www.instagram.com/p/${recentPost.shortcode}/`)
+                    target && (target = target.replace("번째", "").replace("번쨰", "")),
+                    +target ? (target =  --target) : (target = 0);
+
+                    const targetPost = media.edges[`${target ? target > 11 ? 11 : target : 0}`].node;
+                    const targetPostComment = targetPost.edge_media_to_caption.edges[0].node.text;
+
+                    if (targetPost.is_video) {
+                        fetch(`https://www.instagram.com/p/${targetPost.shortcode}/`)
                         .then(response => {
                             if (response.status === 200) {
                                 return response.text()
@@ -144,15 +149,15 @@ client.on("message", msg => {
 
                             msg.channel.send(attachment)
                             .then(() => {
-                                msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                                msg.channel.send(`>>> ${targetPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
                             })
                         })
                     }
                     else {
-                        const attachment = new MessageAttachment(recentPost.display_url);
+                        const attachment = new MessageAttachment(targetPost.display_url);
                         msg.channel.send(attachment)
                         .then(() => {
-                            msg.channel.send(`>>> ${recentPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                            msg.channel.send(`>>> ${targetPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
                         })
                     }
                 }
