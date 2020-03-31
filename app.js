@@ -1,11 +1,15 @@
 const {Client, MessageAttachment} = require('discord.js');
+const axios = require("axios");
 const fetch = require("node-fetch");
 const crypto = require("crypto");
 const ytdl = require('ytdl-core');
+const fs = require('fs');
 const keys = require("./keys.json");
 const files = require("./files.json");
 const client = new Client();
 const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
+
+let latestInsta = null;
 
 const pickRandom = array => {
     return array[Math.round(Math.random() * (array.length - 1))];
@@ -47,6 +51,65 @@ const parse = raw => {
         return false;
     }
 };
+const fetchInsta = action => {
+    axios
+    .get("https://www.instagram.com/dlwlrma/")
+    .then(response => {
+        const a = response.data;
+        const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
+        const latest = media.edges[0].node;
+
+        if (action === "init") {
+            latestInsta = latest.id
+        }
+        else if (action === "check") {
+            if (latestInsta && latestInsta !== latest.id) {
+                fs.readFile("./channel.txt", function read(err, data) {
+                    if (err) return console.log(err);
+                    const channels = data.split("!!");
+                    const comment = latest.edge_media_to_caption.edges[0].node.text;
+
+                    if (latest.is_video) {
+                        fetch(`https://www.instagram.com/p/${latest.shortcode}/`)
+                        .then(response => {
+                            if (response.status === 200) {
+                                return response.text()
+                            }
+                            else {
+                                return false
+                            }
+                        })
+                        .then(a => {
+                            const attachment = new MessageAttachment(a.slice(a.indexOf("video_url") + 12, a.indexOf("video_view_count") - 3).replace(/\\u0026/gm, "&"));
+
+                            channels.forEach(channel => {
+                                const id = channel.replace(/<|#|>/g, "");
+                                client.channels.cache.get(id).send(attachment)
+                                .then(() => {
+                                    client.channels.cache.get(id).send(`>>> ${comment}`)
+                                })
+                            })
+                        })
+                    }
+                    else {
+                        const attachment = new MessageAttachment(latest.display_url);
+
+                        channels.forEach(channel => {
+                            const id = channel.replace(/<|#|>/g, "");
+                            client.channels.cache.get(id).send(attachment)
+                            .then(() => {
+                                client.channels.cache.get(id).send(`>>> ${comment}`)
+                            })
+                        })
+                    }
+                })
+            }
+        }
+    })
+    .catch(err => {
+        console.log(err);
+    })
+};
 
 client.on("ready", () => {
     console.log(`Logged in : ${client.user.tag}`);
@@ -55,6 +118,12 @@ client.on("ready", () => {
             name: "지은아 도와줘 - 명령어 확인"
         }
     });
+    
+    fetchInsta("init"),
+
+    setInterval(() => {
+        fetchInsta("check")
+    }, 1800000)
 });
 
 client.on("message", msg => {
@@ -112,57 +181,93 @@ client.on("message", msg => {
             msg.channel.send(pickImg(files.angry));
         }
 
-        // Info
-        else if (content.startsWith("인스타")) {
-            fetch("https://www.instagram.com/dlwlrma/")
-            .then(response => {
-                if (response.status === 200) {
-                    return response.text()
+        // notification
+        else if (content.startsWith("알림")) {
+            const splitted = content.split(" ");
+            let action = splitted[1];
+
+            if (action === "추가") {
+                let channel = splitted[2].match(/<#(.[0-9]+)>/g);
+                
+                if (channel) {
+                    const path = "./channel.txt";
+                    channel = channel[0].replace(/<|#|>/g, "");
+    
+                    try {
+                        if (fs.existsSync(path)) {
+                            fs.appendFile(path, `!!${channel}`, function (err) {
+                                if (err) {
+                                    console.log(err),
+                                    msg.reply("채널 추가에 실패했어요. 😢");
+                                    return;
+                                };
+                                console.log(`new channel saved${channel}`),
+                                client.channels.cache.get(channel).send(`성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`)
+                                .then(() => {
+                                    msg.reply("완료!")
+                                })
+                            });
+                        }
+                        else {
+                            fs.writeFile(path, channel, function (err) {
+                                if (err) {
+                                    console.log(err),
+                                    msg.reply("채널 추가에 실패했어요. 😢");
+                                    return;
+                                };
+                                console.log(`new channel saved${channel}`),
+                                client.channels.cache.get(channel).send(`성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`)
+                                .then(() => {
+                                    msg.reply("완료!")
+                                })
+                            });
+                        }
+                    }
+                    catch (err) {
+                        console.log(err);
+                        msg.reply("채널 추가에 실패했어요. 😢")
+                    }
                 }
                 else {
-                    return false
+                    msg.reply("올바른 채널을 입력해주세요.")
                 }
-            })
-            .then(a => {
-                if (a) {
-                    const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
-                    let target = content.split(" ")[1];
+            }
+        }
 
-                    target && (target = target.replace("번째", "").replace("번쨰", "")),
-                    +target ? (target =  --target) : (target = 0);
+        // Info
+        else if (content.startsWith("인스타")) {
+            axios
+            .get("https://www.instagram.com/dlwlrma/")
+            .then(response => {
+                const a = response.data;
+                const media = JSON.parse(a.slice(a.indexOf("edge_owner_to_timeline_media") + 30, a.indexOf("edge_saved_media") - 2));
+                let target = content.split(" ")[1];
 
-                    const targetPost = media.edges[`${target ? target > 11 ? 11 : target : 0}`].node;
-                    const targetPostComment = targetPost.edge_media_to_caption.edges[0].node.text;
+                target && (target = target.replace("번째", "").replace("번쨰", "")),
+                +target ? (target =  --target) : (target = 0);
 
-                    if (targetPost.is_video) {
-                        fetch(`https://www.instagram.com/p/${targetPost.shortcode}/`)
-                        .then(response => {
-                            if (response.status === 200) {
-                                return response.text()
-                            }
-                            else {
-                                return false
-                            }
-                        })
-                        .then(a => {
-                            const attachment = new MessageAttachment(a.slice(a.indexOf("video_url") + 12, a.indexOf("video_view_count") - 3).replace(/\\u0026/gm, "&"));
+                const targetPost = media.edges[`${target ? target > 11 ? 11 : target : 0}`].node;
+                const targetPostComment = targetPost.edge_media_to_caption.edges[0].node.text;
 
-                            msg.channel.send(attachment)
-                            .then(() => {
-                                msg.channel.send(`>>> ${targetPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
-                            })
-                        })
-                    }
-                    else {
-                        const attachment = new MessageAttachment(targetPost.display_url);
+                if (targetPost.is_video) {
+                    axios
+                    .get(`https://www.instagram.com/p/${targetPost.shortcode}/`)
+                    .then(response => {
+                        const a = response.data;
+                        const attachment = new MessageAttachment(a.slice(a.indexOf("video_url") + 12, a.indexOf("video_view_count") - 3).replace(/\\u0026/gm, "&"));
+
                         msg.channel.send(attachment)
                         .then(() => {
                             msg.channel.send(`>>> ${targetPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
                         })
-                    }
+                    })
                 }
                 else {
-                    msg.channel.send("https://www.instagram.com/dlwlrma/")
+                    const attachment = new MessageAttachment(targetPost.display_url);
+                    msg.channel.send(attachment)
+                    .then(() => {
+                        msg.channel.send(`>>> ${targetPostComment}\n더 자세한 내용은 https://www.instagram.com/dlwlrma/ 로!`);
+                    })
                 }
             });            
         }
@@ -457,7 +562,10 @@ client.on("message", msg => {
             }
         }
         else {
-            msg.reply("찾을 수 없는 명령어네요. 😥\n``지은아 도와줘`` 명령어를 이용해 명령어 목록을 확인할 수 있어요.")
+            msg.react("❌")
+            .then(() => {
+                msg.reply("찾을 수 없는 명령어네요. 😥\n``지은아 도와줘`` 명령어를 이용해 명령어 목록을 확인할 수 있어요.");
+            })
         }
     }
 });
