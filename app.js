@@ -64,7 +64,7 @@ const fetchInsta = action => {
         }
         else if (action === "check") {
             if (latestInsta && latestInsta !== latest.id) {
-                fs.readFile("./channel.txt", function read(err, data) {
+                fs.readFile("./channel.txt", "utf8", function(err, data) {
                     if (err) return console.log(err);
                     const channels = data.split("!!");
                     const comment = latest.edge_media_to_caption.edges[0].node.text;
