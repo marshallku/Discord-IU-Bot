@@ -64,6 +64,7 @@ const fetchInsta = action => {
         }
         else if (action === "check") {
             if (latestInsta && latestInsta !== latest.id) {
+                latestInsta = latest.id,
                 fs.readFile("./channel.txt", "utf8", function(err, data) {
                     if (err) return console.log(err);
                     const channels = data.split("!!");
@@ -183,14 +184,14 @@ client.on("message", msg => {
 
         // notification
         else if (content.startsWith("알림")) {
-            const path = "./channel.txt";
             const splitted = content.split(" ");
             let action = splitted[1];
-            if (!splitted[2]) return msg.reply("채널을 입력해주세요.");
-            let channel = splitted[2].match(/<#(.[0-9]+)>/g);
-            
+
             if (action === "추가") {
+                let channel = splitted[2].match(/<#(.[0-9]+)>/g);
+                
                 if (channel) {
+                    const path = "./channel.txt";
                     channel = channel[0].replace(/<|#|>/g, "");
     
                     try {
@@ -230,18 +231,6 @@ client.on("message", msg => {
                 }
                 else {
                     msg.reply("올바른 채널을 입력해주세요.")
-                }
-            }
-            else if ("삭제") {
-                const data = fs.readFileSync(path, "utf8");
-                const regex = new RegExp(`(!!)?${channel}`, "gi");
-                const newValue = data.replace(regex, "");
-                try {
-                    fs.writeFileSync(path, newValue);
-                }
-                catch(err) {
-                    console.log(err),
-                    msg.reply("채널 삭제에 실패했어요. 😢")
                 }
             }
         }
