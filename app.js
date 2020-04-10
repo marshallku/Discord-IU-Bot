@@ -69,6 +69,7 @@ const fetchInsta = action => {
                     if (err) return console.log(err);
                     const channels = data.split("!!");
                     const comment = latest.edge_media_to_caption.edges[0].node.text;
+                    const uri = latest
 
                     if (latest.is_video) {
                         fetch(`https://www.instagram.com/p/${latest.shortcode}/`)
@@ -87,7 +88,7 @@ const fetchInsta = action => {
                                 const id = channel.replace(/<|#|>/g, "");
                                 client.channels.cache.get(id).send(attachment)
                                 .then(() => {
-                                    client.channels.cache.get(id).send(`>>> ${comment}`)
+                                    client.channels.cache.get(id).send(`>>> ${comment}\nhttps://www.instagram.com/p/${latest.shortcode}`)
                                 })
                             })
                         })
@@ -99,7 +100,7 @@ const fetchInsta = action => {
                             const id = channel.replace(/<|#|>/g, "");
                             client.channels.cache.get(id).send(attachment)
                             .then(() => {
-                                client.channels.cache.get(id).send(`>>> ${comment}`)
+                                client.channels.cache.get(id).send(`>>> ${comment}\nhttps://www.instagram.com/p/${latest.shortcode}`)
                             })
                         })
                     }
