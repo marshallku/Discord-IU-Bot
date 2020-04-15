@@ -359,6 +359,29 @@ client.on("message", msg => {
                 msg.reply("암호 [행동(생성, 해독)] [문자열]로 암호를 생성하고 해독할 수 있어요.")
             }
         }
+        else if (content.startsWith("타이머")) {
+            const time = content.replace("타이머 ", "").split(" ");
+            const regex = /^([0-9]+)(분|초|시간)$/;
+            const timeToMs = (time, unit) => {
+                return `${unit === "시간" ? time*3600000 : unit === "분" ? time*60000 : unit === "초" ? time*1000 : false}`
+            };
+            try {
+                let result = 0;
+                time.forEach(time => {
+                    const match = time.match(regex);
+                    result += +timeToMs(match[1], match[2])
+                })
+                msg.reply(`${result/1000}초 뒤에 알려드릴게요! ⏲️`)
+                .then(() => {
+                    setTimeout(() => {
+                        msg.reply("설정한 시간이 끝났어요! 🔔")
+                    }, result)
+                })
+            }
+            catch (err) {
+                msg.reply("올바른 시간을 입력해주세요.")
+            }
+        }
 
         // weather
         else if (content === "날씨") {
