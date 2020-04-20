@@ -7,6 +7,7 @@ const fs = require('fs');
 const keys = require("./keys.json");
 const files = require("./files.json");
 const client = new Client();
+const encryptKey = 'aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ';
 const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
 
 let latestInsta = null;
@@ -110,6 +111,26 @@ const fetchInsta = action => {
     .catch(err => {
         console.log(err);
     })
+};
+const encrypt = text => {
+    let iv = crypto.randomBytes(16);
+    let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(encryptKey), iv);
+    let encrypted = cipher.update(text);
+
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+    return iv.toString('hex') + ':' + encrypted.toString('hex');
+};
+const decrypt = text => {
+    let textParts = text.split(':');
+    let iv = Buffer.from(textParts.shift(), 'hex');
+    let encryptedText = Buffer.from(textParts.join(':'), 'hex');
+    let decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(encryptKey), iv);
+    let decrypted = decipher.update(encryptedText);
+
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+    return decrypted.toString();
 };
 
 client.on("ready", () => {
@@ -300,10 +321,17 @@ client.on("message", msg => {
 
         // Extra Functions
         else if (content.startsWith("말해")) {
-            if (content.split(" ").length >= 3) {
+            if (content.split(" ").length >= 2) {
                 if (content.slice(-3) === "-지워") {
-                    msg.delete();
-                    msg.channel.send(content.slice(0, -3).replace("말해 ", ""));
+                    msg.channel.send(content.slice(0, -3).replace("말해 ", ""))
+                    .then(() => {
+                        try {
+                            msg.delete();
+                        }
+                        catch(err) {
+                            msg.channel.send("메시지 삭제 권한을 부여받지 못했습니다. 서버 관리자에게 문의해주세요.\nhttps://discordapp.com/api/oauth2/authorize?client_id=684667274287906835&permissions=8&scope=bot\n링크를 통해 봇을 추가하시면 문제가 해결됩니다.");
+                        }
+                    })
                 }
                 else {
                     msg.channel.send(content.replace("말해 ", ""));
@@ -339,19 +367,13 @@ client.on("message", msg => {
             const action = split[1];
 
             if (action === "생성") {
-                const cipher = crypto.createCipher("aes-256-cbc", "key");
-                let encrypted = cipher.update(split.slice(2).join(" "), "utf8", "base64");
-                encrypted += cipher.final("base64");
-                msg.reply(encrypted);
+                msg.reply(encrypt(split.slice(2).join(" ")));
             }
             else if (action === "해독") {
-                const decipher = crypto.createDecipher("aes-256-cbc", "key");
-                let decrypted = decipher.update(split[2], "base64", "utf8");
-                decrypted += decipher.final("utf8");
-                if (decrypted) {
-                    msg.reply(decrypted);
+                try {
+                    msg.reply(decrypt(split[2]));
                 }
-                else {
+                catch(err) {
                     msg.reply("복호화에 실패했어요. 😥")
                 }
             }
