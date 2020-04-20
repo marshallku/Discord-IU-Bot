@@ -405,6 +405,19 @@ client.on("message", msg => {
             }
         }
 
+        // math
+        else if (content.startsWith("랜덤")) {
+            const split = content.split(" ");
+            const min = +split[1];
+            const max = +split[2];
+            if (split.length === 3 && min && max && max > min) {
+                msg.reply(Math.round(Math.random() * (max - min)) + min)
+            }
+            else {
+                msg.reply("``지은아 랜덤 [최소 숫자] [최대 숫자]``가 올바른 사용법이에요.")
+            }
+        }
+
         // weather
         else if (content === "날씨") {
             const date = () => {
@@ -485,6 +498,21 @@ client.on("message", msg => {
                 }`);
                 
 	        });
+        }
+        else if (content.startsWith("제비뽑기")) {
+            const users = msg.mentions.users;
+            const size = users.size;
+            
+            if (size < 2) {
+                msg.reply("2인 이상 언급해주세요!")
+            }
+            else {
+                const random = [...users][
+                    Math.round(Math.random() * (size - 1))
+                ];
+
+                msg.channel.send(`당첨! 🎉<@${random[0]}>🎉`)
+            }
         }
 
         // Moderation
