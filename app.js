@@ -410,7 +410,7 @@ client.on("message", msg => {
             const split = content.split(" ");
             const min = +split[1];
             const max = +split[2];
-            if (split.length === 3 && min && max && max > min) {
+            if (split.length === 3 && min !== NaN && max !== NaN && max > min) {
                 msg.reply(Math.round(Math.random() * (max - min)) + min)
             }
             else {
