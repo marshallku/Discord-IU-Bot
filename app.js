@@ -209,9 +209,9 @@ client.on("message", msg => {
             let action = splitted[1];
 
             if (action === "추가") {
-                let channel = splitted[2].match(/<#(.[0-9]+)>/g);
-                
-                if (channel) {
+                if (splitted[2]) {
+                    let channel = splitted[2].match(/<#(.[0-9]+)>/g);
+                    if (!channel) {return msg.reply("올바른 채널을 입력해주세요.");}
                     const path = "./channel.txt";
                     channel = channel[0].replace(/<|#|>/g, "");
     
