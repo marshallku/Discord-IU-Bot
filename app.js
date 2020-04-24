@@ -10,7 +10,7 @@ const files = require("./files.json");
 const client = new Client();
 const encryptKey = 'aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ';
 const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
-const blacklist = ["436929610459119617", "406774481114234880", "573808986432733202", "693394249210920970", "379939663047163904"];
+const blacklist = [];
 const badwords = /words|to|block/gi;
 
 let latestInsta = null;
