@@ -9,7 +9,7 @@ const keys = require("./keys.json");
 const files = require("./files.json");
 const client = new Client();
 const encryptKey = 'aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ';
-const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry", "fighting"];
+const gifCategory = ["hi", "bye", "ok", "no", "good", "surprised", "angry", "laugh", "cry", "fighting", "love"];
 const blacklist = [];
 const badwords = /words|to|block/gi;
 
