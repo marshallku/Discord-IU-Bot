@@ -2,13 +2,16 @@ const {Client, MessageAttachment} = require('discord.js');
 const axios = require("axios");
 const fetch = require("node-fetch");
 const crypto = require("crypto");
-const ytdl = require('ytdl-core');
-const fs = require('fs');
+const ytdl = require("ytdl-core");
+const fs = require("fs");
+const math = require("mathjs");
 const keys = require("./keys.json");
 const files = require("./files.json");
 const client = new Client();
 const encryptKey = 'aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ';
 const gifCategory = ["hi","bye","ok","good","surprised","angry","laugh","cry"];
+const blacklist = ["436929610459119617", "406774481114234880", "573808986432733202", "693394249210920970", "379939663047163904"];
+const badwords = /words|to|block/gi;
 
 let latestInsta = null;
 
@@ -154,9 +157,16 @@ client.on("message", msg => {
 
     if (content.startsWith("지은아")) {
         const author = msg.author;
+        const authorid = author.id;
+        if(blacklist.includes(authorid)) return;
         const user = msg.mentions.users.first();
         const member = user && msg.guild.member(user);
         content = content.slice(4);
+
+        // bad word blocker
+        if (badwords.test(content)) {
+            return msg.reply("바르고 고운 말 사용하기!");
+        }
 
         // If user typed nothing
         if (content === "") {
@@ -166,7 +176,7 @@ client.on("message", msg => {
 
         // Help
         else if (content === "도와줘") {
-            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n알림 추가 [채널] : 인스타그램 알림 채널을 설정합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
+            msg.channel.send("지은아 [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n알림 추가 [채널] : 인스타그램 알림 채널을 설정합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n계산 [수식] : 해당 수식을 계산해줍니다.  계산 [단위] to [단위]를 입력하면 단위변환도 가능합니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n\n 움짤 목록 : 안녕, 잘 가, ㅇㅋ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네")
         }
 
         // Greeting, Farewell
@@ -257,6 +267,9 @@ client.on("message", msg => {
         }
 
         // Info
+        else if (content.startsWith("이름")) {
+            msg.reply("예명 : IU(아이유)\n본명 : 이지은 (李知恩, Lee Ji-Eun)");
+        }
         else if (content.startsWith("인스타")) {
             axios
             .get("https://www.instagram.com/dlwlrma/")
@@ -404,6 +417,9 @@ client.on("message", msg => {
                 msg.reply("올바른 시간을 입력해주세요.")
             }
         }
+        else if (content === "잘 자" || content === "잘자") {
+            msg.reply("Baby, sweet good night\nhttps://youtu.be/aepREwo5Lio")
+        }
 
         // math
         else if (content.startsWith("랜덤")) {
@@ -415,6 +431,26 @@ client.on("message", msg => {
             }
             else {
                 msg.reply("``지은아 랜덤 [최소 숫자] [최대 숫자]``가 올바른 사용법이에요.")
+            }
+        }
+        else if (content.startsWith("계산")) {
+            content = content.slice(3)
+            if (content) {
+                try {
+                    const result = math.evaluate(content);
+                    const resStr = math.format(result, { precision: 14 });
+                    const type = typeof(result);
+                    if (type === "function") {
+                        throw "error";
+                    }
+                    msg.reply(resStr);
+                }
+                catch (err) {
+                    msg.reply("올바른 수식을 입력해주세요.");
+                }
+            }
+            else {
+                msg.reply("``지은아 계산 [수식]``이 올바른 사용법이에요.");
             }
         }
 
