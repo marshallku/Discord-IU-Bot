@@ -154,6 +154,41 @@ client.on("ready", () => {
 client.on("message", msg => {
     if(msg.author.bot) return;
     let content = msg.content;
+    
+    if (content.startsWith("!!") && msg.author.id === "285671139110420490") {
+        content = content.slice(2);
+        split = content.split(" ");
+        if (content.startsWith("guild")) {
+            if (split[1] === "length") {
+                msg.reply(client.guilds.cache.size);
+            }
+        }
+        if (content.startsWith("checkUser")) {
+            msg.reply(client.users.cache.get(split[1]) !== undefined);
+        }
+        if (content.startsWith("sendMessage")) {
+            try {
+                client.users.cache.get(split[1]).send(split[2])
+                msg.reply("succeeded")
+            }
+            catch (err) {
+                msg.reply("failed")
+            }
+        }
+        if (content.startsWith("blockUser")) {
+            blacklist.push(split[1]);
+            msg.reply("succeeded")
+        }
+        if (content.startsWith("eval")) {
+            try {
+                eval(split[1]);
+                msg.reply("succeeded");
+            }
+            catch (err) {
+                msg.reply("error");
+            }
+        }
+    }
 
     if (content.startsWith("지은아") || content.startsWith("지금아")) {
         const author = msg.author;
@@ -367,8 +402,9 @@ client.on("message", msg => {
             msg.channel.send(`@everyone ${author}님이 집합하시랍니다!`)
         }
         else if (content.startsWith("정렬해줘")) {
-            const array = content.match(/\[(.*)\]/g)[0];
-            if (array) {
+            const arrRegex = content.match(/\[(.*)\]/g);
+            if (arrRegex) {
+                const array = arrRegex[0];
                 const start = new Date().getTime();
                 const parsed = parse(array) ;
 
