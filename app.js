@@ -148,7 +148,7 @@ client.on("ready", () => {
 
 client.on("message", msg => {
     if(msg.author.bot) return;
-    let content = msg.content;\
+    let content = msg.content;
 
     if (content.startsWith("지은아") || content.startsWith("지금아")) {
         const author = msg.author;
