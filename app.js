@@ -6,6 +6,7 @@ const fs = require("fs");
 const math = require("mathjs");
 const keys = require("./keys.json");
 const files = require("./files.json");
+const blacklist = require();
 const client = new Client();
 const encryptKey = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
 const gifCategory = [
@@ -30,7 +31,6 @@ const quotes = [
     "허무해질 때는 재빨리 다음 스텝을 생각해요. 저도 그게 썩 좋은 방법이라고 생각하지 않아요. 하지만 빠져나갈 수 있는 제일 쉬운 방법이라서 그렇게 해왔어요.",
     "기쁠 때 기쁘고, 슬플 때 울고, 배고프면 힘없고, 아프면 능률 떨어지고, 그런 자연스러운 일들이 좀 자연스럽게 내색되고 또 자연스럽게 받아들여졌으면 좋겠습니다.",
 ];
-const blacklist = [];
 const badwords = /words|to|block/gi;
 
 let latestInsta = null;
