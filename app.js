@@ -1,13 +1,19 @@
 const { Client, MessageAttachment } = require("discord.js");
+const { MongoClient } = require("mongodb");
+
 const axios = require("axios");
 const fetch = require("node-fetch");
 const crypto = require("crypto");
-const fs = require("fs");
 const math = require("mathjs");
 const keys = require("./keys.json");
 const files = require("./files.json");
-const blacklist = require();
+const blacklist = require("./blacklist.json");
+
 const client = new Client();
+const mongoClient = new MongoClient(process.env.MONGODB_URI, {
+    useUnifiedTopology: true,
+});
+
 const encryptKey = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
 const gifCategory = [
     "hi",
@@ -97,35 +103,29 @@ const fetchInsta = (action, msg, index) => {
             } else if (action === "check") {
                 if (latestInsta && latestInsta !== latest.id) {
                     latestInsta = latest.id;
-                    const sendInsta = (attach) => {
+                    const sendInsta = async (attach) => {
                         const attachment = new MessageAttachment(attach);
 
-                        fs.readFile("./channel.txt", "utf8", (err, data) => {
-                            if (err) return console.log(err);
-                            const channels = data.toString().split(/\r?\n/gim);
-                            const comment =
-                                latest.edge_media_to_caption.edges[0].node.text;
+                        try {
+                            const db = mongoClient.db("instaChannels");
+                            const channelCollection = db.collection("channel");
+                            const channels = await channelCollection.find();
 
                             channels.forEach((channel) => {
-                                try {
-                                    client.channels.cache
-                                        .get(channel)
-                                        .send(attachment)
-                                        .then(() => {
-                                            client.channels.cache
-                                                .get(channel)
-                                                .send(
-                                                    `>>> ${comment}\n\n<https://www.instagram.com/p/${latest.shortcode}>`
-                                                );
-                                        });
-                                } catch (err) {
-                                    console.log(
-                                        "error sending message",
-                                        channel
-                                    );
-                                }
+                                client.channels.cache
+                                    .get(channel.id)
+                                    .send(attachment)
+                                    .then(() => {
+                                        client.channels.cache
+                                            .get(channel.id)
+                                            .send(
+                                                `>>> ${comment}\n\n<https://www.instagram.com/p/${latest.shortcode}>`
+                                            );
+                                    });
                             });
-                        });
+                        } catch (err) {
+                            console.log(err);
+                        }
                     };
 
                     sendInsta(latest.display_url);
@@ -190,6 +190,9 @@ client.on("ready", () => {
             name: "지은아 도와줘 - 명령어 확인",
         },
     });
+    mongoClient.connect(() => {
+        console.log("Connected to MongoDB");
+    });
 
     fetchInsta("init"),
         setInterval(() => {
@@ -197,14 +200,15 @@ client.on("ready", () => {
         }, 1800000);
 });
 
-client.on("message", (msg) => {
+client.on("message", async (msg) => {
     if (msg.author.bot) return;
     let content = msg.content;
 
     if (content.startsWith("지은아") || content.startsWith("지금아")) {
         const author = msg.author;
         const authorid = author.id;
-        if (blacklist.includes(authorid)) return;
+        if (blacklist.includes(authorid))
+            return console.log(`blocked user : ${authorid} - ${content}`);
         const user = msg.mentions.users.first();
         const member = user && msg.guild.member(user);
         content = content.slice(4);
@@ -222,15 +226,10 @@ client.on("message", (msg) => {
             msg.channel.send(pickImg(ranCat));
         }
 
-        // Eight
-        else if (content === "에잇") {
-            msg.channel.send("https://youtu.be/TgOu00Mf3kI");
-        }
-
         // Help
         else if (content === "도와줘") {
             msg.channel.send(
-                "[지은아 or 지금아] [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n알림 [추가 or 삭제] [채널] : 인스타그램 알림 채널을 설정합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n계산 [수식] : 해당 수식을 계산해줍니다.\n(단위변환 or 단위 변환) [변환할 항목] [단위] : 단위를 변환해줍니다. 변환할 항목엔 숫자와 단위, 단위엔 단위만 입력하시면 됩니다.\n소수 [숫자](번째) : [숫자]번째 소수를 알려줍니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n[힘들다 or 힘들어] : 위로가 필요한 당신에게\n 움짤 목록 : 안녕(or ㅎㅇ), 잘 가(or ㅂㅇ, ㅂㅂ), ㅇㅋ, ㄴㄴ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네, 사랑해, 화이팅"
+                "[지은아 or 지금아] [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n알림 [추가 or 삭제] [채널] : 인스타그램 알림 채널을 설정합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n계산 [수식] : 해당 수식을 계산해줍니다.\n(단위변환 or 단위 변환) [변환할 항목] [단위] : 단위를 변환해줍니다. 변환할 항목엔 숫자와 단위, 단위엔 단위만 입력하시면 됩니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n[힘들다 or 힘들어] : 위로가 필요한 당신에게\n 움짤 목록 : 안녕(or ㅎㅇ), 잘 가(or ㅂㅇ, ㅂㅂ), ㅇㅋ, ㄴㄴ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네, 사랑해, 화이팅"
             );
         }
 
@@ -278,48 +277,32 @@ client.on("message", (msg) => {
 
             if (splitted[2]) {
                 let channel = splitted[2].match(/<#(.[0-9]+)>/g);
+
                 if (!channel) {
                     return msg.reply("올바른 채널을 입력해주세요.");
                 }
-                const path = "./channel.txt";
                 channel = channel[0].replace(/<|#|>/g, "");
 
                 if (action === "추가") {
                     try {
-                        if (fs.existsSync(path)) {
-                            fs.appendFile(path, `${channel}`, (err) => {
-                                if (err) {
-                                    console.log(err),
-                                        msg.reply("채널 추가에 실패했어요. 😢");
-                                    return;
-                                }
-                                console.log(`new channel saved${channel}`),
-                                    client.channels.cache
-                                        .get(channel)
-                                        .send(
-                                            `성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`
-                                        )
-                                        .then(() => {
-                                            msg.reply("완료!");
-                                        });
-                            });
+                        const db = mongoClient.db("instaChannels");
+                        const channelCollection = db.collection("channel");
+                        const result = await channelCollection.insertOne({
+                            id: channel,
+                        });
+                        if (result.insertedCount) {
+                            console.log(`new channel saved${channel}`);
+
+                            client.channels.cache
+                                .get(channel)
+                                .send(
+                                    `성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`
+                                )
+                                .then(() => {
+                                    msg.reply("완료!");
+                                });
                         } else {
-                            fs.writeFile(path, channel, (err) => {
-                                if (err) {
-                                    console.log(err),
-                                        msg.reply("채널 추가에 실패했어요. 😢");
-                                    return;
-                                }
-                                console.log(`new channel saved${channel}`),
-                                    client.channels.cache
-                                        .get(channel)
-                                        .send(
-                                            `성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`
-                                        )
-                                        .then(() => {
-                                            msg.reply("완료!");
-                                        });
-                            });
+                            msg.reply("채널 추가에 실패했어요. 😢");
                         }
                     } catch (err) {
                         console.log(err);
@@ -327,23 +310,26 @@ client.on("message", (msg) => {
                     }
                 } else if (action === "삭제") {
                     try {
-                        const data = fs.readFileSync(path, "utf-8");
-                        if (data.indexOf(channel) === -1)
-                            return msg.reply("해당 채널은 존재하지 않네요.");
-                        const newData = data.replace(
-                            new RegExp(`${channel}\r?\n?`),
-                            ""
-                        );
-                        console.log(data, newData);
-                        fs.writeFileSync(path, newData, "utf-8");
-                        client.channels.cache
-                            .get(channel)
-                            .send(
-                                `성공적으로 알림 채널을 삭제했어요.\n채널 ID : ${channel}`
-                            )
-                            .then(() => {
-                                msg.reply("완료!");
-                            });
+                        const db = mongoClient.db("instaChannels");
+                        const channelCollection = db.collection("channel");
+                        const result = await channelCollection.deleteOne({
+                            id: channel,
+                        });
+
+                        if (result.deletedCount) {
+                            client.channels.cache
+                                .get(channel)
+                                .send(
+                                    `성공적으로 알림 채널을 삭제했어요.\n채널 ID : ${channel}`
+                                )
+                                .then(() => {
+                                    msg.reply("완료!");
+                                });
+                        } else {
+                            msg.reply(
+                                "해당 채널이 존재하지 않거나 삭제에 실패했어요."
+                            );
+                        }
                     } catch (err) {
                         msg.reply("채널 삭제에 실패했어요. 😢");
                     }
@@ -369,26 +355,6 @@ client.on("message", (msg) => {
             );
         } else if (content === "뮤비" || content === "뮤직비디오") {
             msg.channel.send(`https://youtu.be/${pickRandom(files.mv)}`);
-        }
-
-        // Music
-        else if (content.startsWith("재생해줘")) {
-            // const uri = content.split(" ")[1];
-            // if (!uri) return msg.reply("재생할 주소를 입력해주세요.");
-
-            // const voiceChannel = msg.member.voice.channel;
-
-            // if (!voiceChannel) {
-            //     return msg.reply("음성 채팅방에 들어가셔야 재생할 수 있어요.");
-            // }
-
-            // voiceChannel.join().then(connection => {
-            //     const stream = ytdl(uri, {filter: "audioonly"});
-            //     const dispatcher = connection.play(stream);
-
-            //     dispatcher.on("end", () => voiceChannel.leave());
-            // });
-            msg.reply("일시적으로 사용 중지된 기능입니다.");
         }
 
         // Extra Functions
@@ -537,25 +503,6 @@ client.on("message", (msg) => {
                     "``지은아 (단위변환 or 단위 변환) [변환할 항목] [단위]``가 올바른 사용법이에요."
                 );
             }
-        } else if (content.startsWith("소수")) {
-            const input = content.split(" ")[1];
-            let num = input ? input.replace("번째", "") : null;
-            if (num && +num) {
-                num -= 1;
-                fs.readFile("./prime.txt", (err, data) => {
-                    if (err) throw err;
-                    data = data.toString().split(" ")[num];
-                    if (data) {
-                        msg.reply(data);
-                    } else {
-                        msg.reply("적당한 숫자를 입력해주세요. 😥");
-                    }
-                });
-            } else {
-                msg.reply(
-                    "``지은아 소수 [숫자](번째)``가 올바른 사용법이에요."
-                );
-            }
         } else if (
             content === "힘들다" ||
             content === "힘들어" ||
@@ -620,7 +567,7 @@ client.on("message", (msg) => {
         else if (content === "주사위") {
             const result = Math.floor(Math.random() * 5 + 1);
             msg.reply(
-                `${
+                `\n${
                     result === 1
                         ? "```┌─────────┐\n│         │\n│    *    │\n│         │\n└─────────┘```"
                         : result === 2
