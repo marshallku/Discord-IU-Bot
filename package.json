@@ -4,7 +4,7 @@
     "description": "iu chatbot runs with discord",
     "main": "app.js",
     "dependencies": {
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "discord.js": "^12.0.1",
         "mathjs": "^6.6.4",
         "node-fetch": "^2.6.0",
