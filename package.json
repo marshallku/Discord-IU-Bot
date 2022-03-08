@@ -4,13 +4,9 @@
     "description": "iu chatbot runs with discord",
     "main": "./src/app.js",
     "dependencies": {
-        "axios": "^0.21.1",
         "discord.js": "^12.0.1",
-        "mathjs": "^7.5.1",
-        "node-fetch": "^2.6.0",
-        "mongodb": "^3.6.4"
+        "mathjs": "^10.4.0"
     },
-    "devDependencies": {},
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
     },
