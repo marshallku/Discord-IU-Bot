@@ -1,19 +1,9 @@
-const { Client, MessageAttachment } = require("discord.js");
-const { MongoClient } = require("mongodb");
-
-const axios = require("axios");
-const fetch = require("node-fetch");
+const { Client } = require("discord.js");
 const crypto = require("crypto");
 const math = require("mathjs");
-const keys = require("./keys.json");
-const files = require("./files.json");
-const blacklist = require("./blacklist.json");
+const files = require("../files.json");
 
 const client = new Client();
-const mongoClient = new MongoClient(process.env.MONGODB_URI, {
-    useUnifiedTopology: true,
-});
-
 const encryptKey = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
 const gifCategory = [
     "hi",
@@ -39,11 +29,10 @@ const quotes = [
 ];
 const badwords = /words|to|block/gi;
 
-let latestInsta = null;
-
 const pickRandom = (array) => {
     return array[Math.round(Math.random() * (array.length - 1))];
 };
+
 const pickImg = (array) => {
     return pickRandom(array)
         .replace("[gfy]", "https://giant.gfycat.com/")
@@ -52,6 +41,7 @@ const pickImg = (array) => {
         .replace("[fgfy]", "https://fat.gfycat.com/")
         .replace("[tgfy]", "https://thumbs.gfycat.com/");
 };
+
 const quickSort = (arr, l, r) => {
     let i;
 
@@ -62,6 +52,7 @@ const quickSort = (arr, l, r) => {
 
     return arr;
 };
+
 const partition = (arr, l, r) => {
     let i = l,
         j = r,
@@ -74,6 +65,7 @@ const partition = (arr, l, r) => {
     }
     return (arr[l] = arr[j]), (arr[j] = pivot), j;
 };
+
 const parse = (raw) => {
     try {
         return JSON.parse(raw);
@@ -81,79 +73,7 @@ const parse = (raw) => {
         return false;
     }
 };
-const fetchInsta = (action, msg, index) => {
-    axios
-        .get("https://www.instagram.com/dlwlrma/")
-        .then((response) => {
-            const data = response.data;
-            const media = parse(
-                data.slice(
-                    data.indexOf("edge_owner_to_timeline_media") + 30,
-                    data.indexOf("edge_saved_media") - 2
-                )
-            );
-            if (!media) {
-                return console.log("failed parsing insta");
-            }
-            const latest = media.edges[0].node;
 
-            if (action === "init") {
-                latestInsta = latest.id;
-                console.log("latest insta : ", latestInsta);
-            } else if (action === "check") {
-                if (latestInsta && latestInsta !== latest.id) {
-                    latestInsta = latest.id;
-                    const sendInsta = async (attach) => {
-                        const attachment = new MessageAttachment(attach);
-
-                        try {
-                            const db = mongoClient.db("instaChannels");
-                            const channelCollection = db.collection("channel");
-                            const channels = await channelCollection.find();
-
-                            channels.forEach((channel) => {
-                                client.channels.cache
-                                    .get(channel.id)
-                                    .send(attachment)
-                                    .then(() => {
-                                        client.channels.cache
-                                            .get(channel.id)
-                                            .send(
-                                                `>>> ${comment}\n\n<https://www.instagram.com/p/${latest.shortcode}>`
-                                            );
-                                    });
-                            });
-                        } catch (err) {
-                            console.log(err);
-                        }
-                    };
-
-                    sendInsta(latest.display_url);
-                }
-            } else if (action === "get") {
-                const targetPost =
-                    media.edges[`${index ? (index > 11 ? 11 : index) : 0}`]
-                        .node;
-                const targetPostComment =
-                    targetPost.edge_media_to_caption.edges[0].node.text;
-
-                const sendInsta = (attach) => {
-                    const attachment = new MessageAttachment(attach);
-
-                    msg.channel.send(attachment).then(() => {
-                        msg.channel.send(
-                            `>>> ${targetPostComment}\n\n<https://www.instagram.com/p/${targetPost.shortcode}>`
-                        );
-                    });
-                };
-
-                sendInsta(targetPost.display_url);
-            }
-        })
-        .catch(() => {
-            console.log("error fetching instagram");
-        });
-};
 const encrypt = (text) => {
     let iv = crypto.randomBytes(16);
     let cipher = crypto.createCipheriv(
@@ -167,6 +87,7 @@ const encrypt = (text) => {
 
     return iv.toString("hex") + ":" + encrypted.toString("hex");
 };
+
 const decrypt = (text) => {
     let textParts = text.split(":");
     let iv = Buffer.from(textParts.shift(), "hex");
@@ -190,14 +111,6 @@ client.on("ready", () => {
             name: "지은아 도와줘 - 명령어 확인",
         },
     });
-    mongoClient.connect(() => {
-        console.log("Connected to MongoDB");
-    });
-
-    fetchInsta("init"),
-        setInterval(() => {
-            fetchInsta("check");
-        }, 1800000);
 });
 
 client.on("message", async (msg) => {
@@ -206,9 +119,6 @@ client.on("message", async (msg) => {
 
     if (content.startsWith("지은아") || content.startsWith("지금아")) {
         const author = msg.author;
-        const authorid = author.id;
-        if (blacklist.includes(authorid))
-            return console.log(`blocked user : ${authorid} - ${content}`);
         const user = msg.mentions.users.first();
         const member = user && msg.guild.member(user);
         content = content.slice(4);
@@ -229,7 +139,7 @@ client.on("message", async (msg) => {
         // Help
         else if (content === "도와줘") {
             msg.channel.send(
-                "[지은아 or 지금아] [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n알림 [추가 or 삭제] [채널] : 인스타그램 알림 채널을 설정합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n인스타 [n번째(생략 가능)] : 인스타그램을 게시글을 표시해줍니다. 마지막에 (숫자)번째를 추가하면 해당 게시물을 보여줍니다.\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n날씨 : 기상청에서 받은 중기예보를 알려줍니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n계산 [수식] : 해당 수식을 계산해줍니다.\n(단위변환 or 단위 변환) [변환할 항목] [단위] : 단위를 변환해줍니다. 변환할 항목엔 숫자와 단위, 단위엔 단위만 입력하시면 됩니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n[힘들다 or 힘들어] : 위로가 필요한 당신에게\n 움짤 목록 : 안녕(or ㅎㅇ), 잘 가(or ㅂㅇ, ㅂㅂ), ㅇㅋ, ㄴㄴ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네, 사랑해, 화이팅"
+                "[지은아 or 지금아] [명령어] 구조로 이루어져 있습니다.\n말해 [문자] : 봇이 한 말을 따라 합니다. 마지막에 -지워를 붙이면 해당 메시지를 지우고 따라 합니다.\n정렬해줘 [배열] : Quick Sort로 배열을 정렬합니다.\n[내쫓아 or 밴] [@유저] [문자(밴 사유, 선택)] : 순서대로 kick, ban입니다.\n역할 [행동(추가 / 삭제)] [@유저] [역할 이름] : 유저의 역할을 관리합니다\n유튜브 : 유튜브 링크를 표시합니다.\n뮤비 or 뮤직비디오 : 뮤직비디오 링크를 무작위로 표시합니다.\n타이머 [시간(n시간 n분 n초)] : 설정한 시간 뒤에 알림을 보내줍니다.\n암호 [행동(생성 / 해독)] [문자열] : 문자열을 암호화, 복화화합니다.\n랜덤 [최소 숫자] [최대 숫자] : 최소 숫자와 최대 숫자 사이의 수 중 하나를 무작위로 뽑습니다.\n계산 [수식] : 해당 수식을 계산해줍니다.\n(단위변환 or 단위 변환) [변환할 항목] [단위] : 단위를 변환해줍니다. 변환할 항목엔 숫자와 단위, 단위엔 단위만 입력하시면 됩니다.\n게임 : 주사위, 동전, 가위바위보\n제비뽑기 [@유저] : 유저 중 한 명만 당첨됩니다. 반드시 2인 이상 언급해야 합니다.\n[힘들다 or 힘들어] : 위로가 필요한 당신에게\n 움짤 목록 : 안녕(or ㅎㅇ), 잘 가(or ㅂㅇ, ㅂㅂ), ㅇㅋ, ㄴㄴ, ㅠㅠ, ㅋㅋ, 굿, 헉, 열받네, 사랑해, 화이팅"
             );
         }
 
@@ -270,85 +180,9 @@ client.on("message", async (msg) => {
             msg.channel.send(pickImg(files.love));
         }
 
-        // notification
-        else if (content.startsWith("알림")) {
-            const splitted = content.split(" ");
-            let action = splitted[1];
-
-            if (splitted[2]) {
-                let channel = splitted[2].match(/<#(.[0-9]+)>/g);
-
-                if (!channel) {
-                    return msg.reply("올바른 채널을 입력해주세요.");
-                }
-                channel = channel[0].replace(/<|#|>/g, "");
-
-                if (action === "추가") {
-                    try {
-                        const db = mongoClient.db("instaChannels");
-                        const channelCollection = db.collection("channel");
-                        const result = await channelCollection.insertOne({
-                            id: channel,
-                        });
-                        if (result.insertedCount) {
-                            console.log(`new channel saved${channel}`);
-
-                            client.channels.cache
-                                .get(channel)
-                                .send(
-                                    `성공적으로 알림 채널로 등록했어요.\n채널 ID : ${channel}`
-                                )
-                                .then(() => {
-                                    msg.reply("완료!");
-                                });
-                        } else {
-                            msg.reply("채널 추가에 실패했어요. 😢");
-                        }
-                    } catch (err) {
-                        console.log(err);
-                        msg.reply("채널 추가에 실패했어요. 😢");
-                    }
-                } else if (action === "삭제") {
-                    try {
-                        const db = mongoClient.db("instaChannels");
-                        const channelCollection = db.collection("channel");
-                        const result = await channelCollection.deleteOne({
-                            id: channel,
-                        });
-
-                        if (result.deletedCount) {
-                            client.channels.cache
-                                .get(channel)
-                                .send(
-                                    `성공적으로 알림 채널을 삭제했어요.\n채널 ID : ${channel}`
-                                )
-                                .then(() => {
-                                    msg.reply("완료!");
-                                });
-                        } else {
-                            msg.reply(
-                                "해당 채널이 존재하지 않거나 삭제에 실패했어요."
-                            );
-                        }
-                    } catch (err) {
-                        msg.reply("채널 삭제에 실패했어요. 😢");
-                    }
-                }
-            } else {
-                msg.reply("올바른 채널을 입력해주세요.");
-            }
-        }
-
         // Info
         else if (content.startsWith("이름")) {
             msg.reply("예명 : IU(아이유)\n본명 : 이지은 (李知恩, Lee Ji-Eun)");
-        } else if (content.startsWith("인스타")) {
-            let target = content.split(" ")[1];
-
-            target && (target = target.replace("번째", "").replace("번쨰", "")),
-                +target ? (target = --target) : (target = 0);
-
-            fetchInsta("get", msg, target);
         } else if (content === "유튜브") {
             msg.channel.send(
                 "https://www.youtube.com/channel/UC3SyT4_WLHzN7JmHQwKQZww"
@@ -525,42 +359,6 @@ client.on("message", async (msg) => {
             msg.reply(
                 `${pickRandom(quotes)}\nhttps://youtu.be/${pickRandom(songs)}`
             );
-        }
-
-        // weather
-        else if (content === "날씨") {
-            const date = () => {
-                const now = new Date();
-                const format = (number) => {
-                    return `${number < 10 ? `0${number}` : number}`;
-                };
-                let hhmm = 0;
-
-                if (now.getHours() <= 6) {
-                    now.setDate(now.getDate() - 1);
-                    hhmm = "1800";
-                }
-
-                const month = now.getMonth() + 1;
-                const date = now.getDate();
-                hhmm = hhmm ? hhmm : now.getHours() < 18 ? "0600" : "1800";
-
-                return `${now.getFullYear()}${format(month)}${format(
-                    date
-                )}${hhmm}`;
-            };
-
-            fetch(
-                `http://apis.data.go.kr/1360000/MidFcstInfoService/getMidFcst?serviceKey=${
-                    keys.weatherApi
-                }&pageNo=1&numOfRows=10&dataType=JSON&stnId=108&tmFc=${date()}`
-            )
-                .then((response) => {
-                    return response.json();
-                })
-                .then((data) => {
-                    msg.channel.send(data.response.body.items.item[0].wfSv);
-                });
         }
 
         // mini games
@@ -813,4 +611,4 @@ client.on("message", async (msg) => {
     }
 });
 
-client.login(keys.token);
+client.login(process.env.TOKEN);
