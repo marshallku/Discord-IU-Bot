@@ -1,7 +1,7 @@
-const { Client } = require("discord.js");
-const crypto = require("crypto");
-const math = require("mathjs");
-const files = require("../files.json");
+import { Client } from "discord.js";
+import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
+import { evaluate, format } from "mathjs";
+import files from "./data/files";
 
 const client = new Client();
 const encryptKey = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
@@ -29,11 +29,11 @@ const quotes = [
 ];
 const badwords = /words|to|block/gi;
 
-const pickRandom = (array) => {
+const pickRandom = <T>(array: T[]) => {
     return array[Math.round(Math.random() * (array.length - 1))];
 };
 
-const pickImg = (array) => {
+const pickImg = (array: string[]) => {
     return pickRandom(array)
         .replace("[gfy]", "https://giant.gfycat.com/")
         .replace("[zgfy]", "https://zippy.gfycat.com/")
@@ -42,8 +42,8 @@ const pickImg = (array) => {
         .replace("[tgfy]", "https://thumbs.gfycat.com/");
 };
 
-const quickSort = (arr, l, r) => {
-    let i;
+const quickSort = (arr: unknown[], l: number, r: number) => {
+    let i: number;
 
     l < r &&
         ((i = partition(arr, l, r)),
@@ -53,7 +53,7 @@ const quickSort = (arr, l, r) => {
     return arr;
 };
 
-const partition = (arr, l, r) => {
+const partition = (arr: unknown[], l: number, r: number) => {
     let i = l,
         j = r,
         pivot = arr[l];
@@ -61,6 +61,7 @@ const partition = (arr, l, r) => {
     while (i < j) {
         while (arr[j] > pivot) j--;
         while (i < j && arr[i] <= pivot) i++;
+        let tmp;
         (tmp = arr[i]), (arr[i] = arr[j]), (arr[j] = tmp);
     }
     return (arr[l] = arr[j]), (arr[j] = pivot), j;
@@ -75,12 +76,8 @@ const parse = (raw) => {
 };
 
 const encrypt = (text) => {
-    let iv = crypto.randomBytes(16);
-    let cipher = crypto.createCipheriv(
-        "aes-256-cbc",
-        Buffer.from(encryptKey),
-        iv
-    );
+    let iv = randomBytes(16);
+    let cipher = createCipheriv("aes-256-cbc", Buffer.from(encryptKey), iv);
     let encrypted = cipher.update(text);
 
     encrypted = Buffer.concat([encrypted, cipher.final()]);
@@ -92,11 +89,7 @@ const decrypt = (text) => {
     let textParts = text.split(":");
     let iv = Buffer.from(textParts.shift(), "hex");
     let encryptedText = Buffer.from(textParts.join(":"), "hex");
-    let decipher = crypto.createDecipheriv(
-        "aes-256-cbc",
-        Buffer.from(encryptKey),
-        iv
-    );
+    let decipher = createDecipheriv("aes-256-cbc", Buffer.from(encryptKey), iv);
     let decrypted = decipher.update(encryptedText);
 
     decrypted = Buffer.concat([decrypted, decipher.final()]);
@@ -303,8 +296,8 @@ client.on("message", async (msg) => {
             content = content.slice(3);
             if (content) {
                 try {
-                    const result = math.evaluate(content);
-                    const resStr = math.format(result, { precision: 14 });
+                    const result = evaluate(content);
+                    const resStr = format(result, { precision: 14 });
                     const type = typeof result;
                     if (type === "function") {
                         throw "error";
@@ -323,12 +316,7 @@ client.on("message", async (msg) => {
             const split = content.replace("단위 변환", "단위변환").split(" ");
             if (split.length === 3) {
                 try {
-                    msg.reply(
-                        math.format(
-                            math.evaluate(`${split[1]} to ${split[2]}`)
-                        ),
-                        { precision: 14 }
-                    );
+                    msg.reply(format(evaluate(`${split[1]} to ${split[2]}`)));
                 } catch (err) {
                     msg.reply("올바른 단위를 입력해주세요.");
                 }
@@ -433,11 +421,9 @@ client.on("message", async (msg) => {
             if (size < 2) {
                 msg.reply("2인 이상 언급해주세요!");
             } else {
-                const random = [...users][
-                    Math.round(Math.random() * (size - 1))
-                ];
+                const randomUser = pickRandom(users.array());
 
-                msg.channel.send(`당첨! 🎉<@${random[0]}>🎉`);
+                msg.channel.send(`당첨! 🎉<@${randomUser}>🎉`);
             }
         }
 
@@ -519,8 +505,8 @@ client.on("message", async (msg) => {
                                             .ban({
                                                 reason: `${
                                                     reason
-                                                        ? message.slice(
-                                                              message.lastIndexOf(
+                                                        ? content.slice(
+                                                              content.lastIndexOf(
                                                                   " "
                                                               ) + 1
                                                           )
@@ -563,17 +549,17 @@ client.on("message", async (msg) => {
                                     const result = reply.first().content;
                                     if (result === "응" || result === "ㅇㅇ") {
                                         member
-                                            .kick({
-                                                reason: `${
+                                            .kick(
+                                                `${
                                                     reason
-                                                        ? message.slice(
-                                                              message.lastIndexOf(
+                                                        ? content.slice(
+                                                              content.lastIndexOf(
                                                                   " "
                                                               ) + 1
                                                           )
                                                         : "나빴어"
-                                                }`,
-                                            })
+                                                }`
+                                            )
                                             .then(() => {
                                                 msg.reply(
                                                     `${user.tag}을(를) 내쫓았어요.`
