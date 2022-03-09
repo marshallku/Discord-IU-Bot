@@ -1,6 +1,8 @@
 import { Client, Message, MessageReaction, User } from "discord.js";
-import { randomBytes, createCipheriv, createDecipheriv } from "crypto";
 import { evaluate, format } from "mathjs";
+import { decrypt, encrypt } from "./utils/encode";
+import { pickRandom, sortArray } from "./utils/array";
+import parse from "./utils/parse";
 import files from "./data/files";
 
 const client = new Client();
@@ -28,77 +30,6 @@ const quotes = [
     "기쁠 때 기쁘고, 슬플 때 울고, 배고프면 힘없고, 아프면 능률 떨어지고, 그런 자연스러운 일들이 좀 자연스럽게 내색되고 또 자연스럽게 받아들여졌으면 좋겠습니다.",
 ];
 const badWords = /words|to|block/gi;
-
-const pickRandom = <T>(array: T[]) => {
-    return array[Math.round(Math.random() * (array.length - 1))];
-};
-
-const pickImg = (array: string[]) => {
-    return pickRandom(array)
-        .replace("[gfy]", "https://giant.gfycat.com/")
-        .replace("[zgfy]", "https://zippy.gfycat.com/")
-        .replace("[ten]", "https://tenor.com/view/")
-        .replace("[fgfy]", "https://fat.gfycat.com/")
-        .replace("[tgfy]", "https://thumbs.gfycat.com/");
-};
-
-const quickSort = <T>(arr: T[], l: number, r: number) => {
-    let i: number;
-
-    l < r &&
-        ((i = partition(arr, l, r)),
-        quickSort(arr, l, i - 1),
-        quickSort(arr, i + 1, r));
-
-    return arr;
-};
-
-const partition = <T>(arr: T[], l: number, r: number) => {
-    let i = l,
-        j = r,
-        pivot = arr[l];
-
-    while (i < j) {
-        while (arr[j] > pivot) j--;
-        while (i < j && arr[i] <= pivot) i++;
-        let tmp;
-        (tmp = arr[i]), (arr[i] = arr[j]), (arr[j] = tmp);
-    }
-    return (arr[l] = arr[j]), (arr[j] = pivot), j;
-};
-
-const parse = (raw: string) => {
-    try {
-        return JSON.parse(raw);
-    } catch (err) {
-        return false;
-    }
-};
-
-const encrypt = (text: string) => {
-    const iv = randomBytes(16);
-    const cipher = createCipheriv("aes-256-cbc", Buffer.from(encryptKey), iv);
-    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
-
-    return iv.toString("hex") + ":" + encrypted.toString("hex");
-};
-
-const decrypt = (text: string) => {
-    const textParts = text.split(":");
-    const iv = Buffer.from(`${textParts.shift()}`, "hex");
-    const encryptedText = Buffer.from(textParts.join(":"), "hex");
-    const decipher = createDecipheriv(
-        "aes-256-cbc",
-        Buffer.from(encryptKey),
-        iv
-    );
-    const decrypted = Buffer.concat([
-        decipher.update(encryptedText),
-        decipher.final(),
-    ]);
-
-    return decrypted.toString();
-};
 
 client.on("ready", () => {
     console.log(`Logged in : ${client.user?.tag}`);
@@ -131,7 +62,7 @@ client.on("message", async (msg: Message) => {
     // If user typed nothing
     if (msg.content === "지은아" || msg.content === "지금아") {
         channel.send(
-            pickImg(
+            pickRandom(
                 Object.entries(files)
                     .map(([, value]) => value)
                     .flat()
@@ -149,7 +80,7 @@ client.on("message", async (msg: Message) => {
     // Greeting, Farewell
     else if (content === "안녕" || content === "ㅎㅇ") {
         msg.react("💜").then(() => {
-            channel.send(pickImg(files.hi));
+            channel.send(pickRandom(files.hi));
         });
     } else if (
         content === "잘 가" ||
@@ -158,29 +89,29 @@ client.on("message", async (msg: Message) => {
         content == "ㅂㅇ"
     ) {
         msg.react("💜").then(() => {
-            channel.send(pickImg(files.bye));
+            channel.send(pickRandom(files.bye));
         });
     }
 
     // Sending GIFs(Videos)
     else if (content === "ㅇㅋ") {
-        channel.send(pickImg(files.ok));
+        channel.send(pickRandom(files.ok));
     } else if (content === "ㄴㄴ") {
-        channel.send(pickImg(files.no));
+        channel.send(pickRandom(files.no));
     } else if (content === "ㅠㅠ") {
-        channel.send(pickImg(files.cry));
+        channel.send(pickRandom(files.cry));
     } else if (content === "ㅋㅋ") {
-        channel.send(pickImg(files.laugh));
+        channel.send(pickRandom(files.laugh));
     } else if (content === "굿") {
-        channel.send(pickImg(files.good));
+        channel.send(pickRandom(files.good));
     } else if (content === "헉") {
-        channel.send(pickImg(files.surprised));
+        channel.send(pickRandom(files.surprised));
     } else if (content === "열 받네" || content === "열받네") {
-        channel.send(pickImg(files.angry));
+        channel.send(pickRandom(files.angry));
     } else if (content === "화이팅" || content === "파이팅") {
-        channel.send(pickImg(files.fighting));
+        channel.send(pickRandom(files.fighting));
     } else if (content === "사랑해") {
-        channel.send(pickImg(files.love));
+        channel.send(pickRandom(files.love));
     }
 
     // Info
@@ -225,7 +156,7 @@ client.on("message", async (msg: Message) => {
             const parsed = parse(array);
 
             if (parsed) {
-                const sorted = quickSort(parsed, 0, parsed.length - 1);
+                const sorted = sortArray(parsed);
                 reply(
                     `[${sorted}]\n정렬하는데 \`\`${
                         new Date().getTime() - start
