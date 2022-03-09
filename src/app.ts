@@ -111,16 +111,15 @@ client.on("ready", () => {
 
 client.on("message", async (msg: Message) => {
     const { author, channel, reply } = msg;
-    let content = msg.content;
-    if (!author || author.bot || !content) return;
+    const prefix = /^지(은|금)아 ?/;
 
-    if (!content.startsWith("지은아") && !content.startsWith("지금아")) {
+    if (!author || author.bot || !prefix.test(msg.content)) {
         return;
     }
 
+    const content = msg.content.replace(prefix, "");
     const user = msg.mentions?.users.first();
     const member = user && msg.guild?.member(user);
-    content = content.slice(4);
 
     // bad word blocker
     if (badWords.test(content)) {
