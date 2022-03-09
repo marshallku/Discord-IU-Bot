@@ -305,10 +305,11 @@ client.on("message", async (msg: Message) => {
             );
         }
     } else if (content.startsWith("계산")) {
-        content = content.slice(3);
-        if (content) {
+        const formula = content.slice(3);
+
+        if (formula) {
             try {
-                const result = evaluate(content);
+                const result = evaluate(formula);
                 const resStr = format(result, { precision: 14 });
                 const type = typeof result;
                 if (type === "function") {
