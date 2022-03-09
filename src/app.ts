@@ -6,20 +6,6 @@ import parse from "./utils/parse";
 import files from "./data/files";
 
 const client = new Client();
-const encryptKey = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
-const gifCategory = [
-    "hi",
-    "bye",
-    "ok",
-    "no",
-    "good",
-    "surprised",
-    "angry",
-    "laugh",
-    "cry",
-    "fighting",
-    "love",
-] as const;
 const quotes = [
     "Q. 힘들 땐 어떻게 일어나나요?\nA. 가끔, 져요.",
     "Q. 원하는 것들을 이루기 위해서는 무언가를 포기해야 한다고 들었습니다. 포기하신 건 뭔가요?\nA. 아까워하는 마음입니다.",
