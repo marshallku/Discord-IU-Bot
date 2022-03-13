@@ -9,7 +9,7 @@
         "mathjs": "^10.4.0"
     },
     "scripts": {
-        "start": "ts-node-dev ./src/app.ts"
+        "dev": "ts-node-dev ./src/app.ts"
     },
     "repository": {
         "type": "git",
