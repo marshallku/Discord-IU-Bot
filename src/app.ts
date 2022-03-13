@@ -27,7 +27,7 @@ import songsForComfort from "./data/songsForComfort";
 import quotes from "./data/quotes";
 
 const client = new Client();
-const badWords = /words|to|block/gi;
+const badWords = new RegExp(`${process.env.BAD_WORDS}`, "gi");
 
 client.on("ready", () => {
     console.log(`Logged in : ${client.user?.tag}`);
@@ -50,9 +50,14 @@ client.on("message", async (msg: Message) => {
 
     // bad word blocker
     if (badWords.test(content)) {
-        return msg.reply(
+        const { id, username, discriminator } = author;
+
+        console.table({ id, username, discriminator, content });
+        msg.reply(
             "바르고 고운 말 사용하기!\n지속해서 사용하면 관리자에 의해 차단될 수 있습니다."
         );
+
+        return;
     }
 
     // If user typed nothing
