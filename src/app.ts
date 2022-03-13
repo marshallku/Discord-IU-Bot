@@ -61,7 +61,7 @@ client.on("message", async (msg: Message) => {
     }
 
     // If user typed nothing
-    if (msg.content === "지은아" || msg.content === "지금아") {
+    if (content === "") {
         sendRandomGifToChannel(channel);
     }
 
