@@ -38,33 +38,36 @@ export function sendRockPaperScissorsToUser(msg: Message) {
         max: 1,
         time: 10000,
         errors: ["time"],
-    }).then((collected) => {
-        const reaction = collected.first();
+    })
+        .then((collected) => {
+            const reaction = collected.first();
 
-        if (!reaction) {
-            return;
-        }
+            if (!reaction) {
+                return;
+            }
 
-        const { name: emojiName } = reaction.emoji;
-        const userChoice = emojis.indexOf(emojiName);
+            const { name: emojiName } = reaction.emoji;
+            const userChoice = emojis.indexOf(emojiName);
 
-        if (botChoice === userChoice) {
-            msg.reply(`${emojis[botChoice]} 비겼네요 😏`);
-            return;
-        }
+            if (botChoice === userChoice) {
+                msg.reply(`${emojis[botChoice]} 비겼네요 😏`);
+                return;
+            }
 
-        const { length: len } = emojis;
-        const remainder = (botChoice - userChoice) % len;
-        const fixed = remainder < 0 ? remainder + userChoice : remainder;
-        const userWin = fixed < len / 2;
+            if (
+                (botChoice === 0 && userChoice === 2) ||
+                (botChoice === 1 && userChoice === 0) ||
+                (botChoice === 2 && userChoice === 1)
+            ) {
+                msg.reply(`${emojis[botChoice]} 제가 졌어요 😥`);
+                return;
+            }
 
-        if (userWin) {
-            msg.reply(`${emojis[botChoice]} 제가 졌어요 😥`);
-            return;
-        }
-
-        msg.reply(`${emojis[botChoice]} 제가 이겼네요 😁`);
-    });
+            msg.reply(`${emojis[botChoice]} 제가 이겼네요 😁`);
+        })
+        .catch(() => {
+            msg.reply("다음에 할래요.");
+        });
 }
 
 export function sendLotsResultToChannel(msg: Message, channel: Channel) {
