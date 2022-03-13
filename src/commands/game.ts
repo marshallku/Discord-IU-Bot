@@ -25,12 +25,12 @@ export function sendCoinToUser(msg: Message) {
 }
 
 export function sendRockPaperScissorsToUser(msg: Message) {
-    const arr = ["✊", "✌️", "✋"];
-    const choose = getInclusiveRandomInt(0, 2);
+    const emojis = ["✊", "✌️", "✋"];
+    const botChoice = getInclusiveRandomInt(0, 2);
     const filter = (reaction: MessageReaction, user: User) =>
-        arr.includes(reaction.emoji.name) && user.id === msg.author.id;
+        emojis.includes(reaction.emoji.name) && user.id === msg.author.id;
 
-    Promise.all([msg.react("✊"), msg.react("✌️"), msg.react("✋")]).catch(() =>
+    Promise.all(emojis.map((emoji) => msg.react(emoji))).catch(() =>
         msg.reply("다음에 할래요.")
     );
 
@@ -45,27 +45,25 @@ export function sendRockPaperScissorsToUser(msg: Message) {
             return;
         }
 
-        msg.reply(
-            `${
-                reaction.emoji.name === "✊"
-                    ? choose === 0
-                        ? "✊ 비겼네요 😏"
-                        : choose === 1
-                        ? "✌️ 제가 졌어요 😥"
-                        : "✋ 제가 이겼네요 😁"
-                    : reaction.emoji.name === "✌️"
-                    ? choose === 0
-                        ? "✊ 제가 이겼네요 😁"
-                        : choose === 1
-                        ? "✌️ 비겼네요 😏"
-                        : "✋ 제가 졌어요 😥"
-                    : choose === 0
-                    ? "✊ 제가 졌어요 😥"
-                    : choose === 1
-                    ? "✌️ 제가 이겼네요 😁"
-                    : "✋ 비겼네요 😏"
-            }`
-        );
+        const { name: emojiName } = reaction.emoji;
+        const userChoice = emojis.indexOf(emojiName);
+
+        if (botChoice === userChoice) {
+            msg.reply(`${emojis[botChoice]} 비겼네요 😏`);
+            return;
+        }
+
+        const { length: len } = emojis;
+        const remainder = (botChoice - userChoice) % len;
+        const fixed = remainder < 0 ? remainder + userChoice : remainder;
+        const userWin = fixed < len / 2;
+
+        if (userWin) {
+            msg.reply(`${emojis[botChoice]} 제가 졌어요 😥`);
+            return;
+        }
+
+        msg.reply(`${emojis[botChoice]} 제가 이겼네요 😁`);
     });
 }
 
