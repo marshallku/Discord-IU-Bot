@@ -27,7 +27,7 @@ import songsForComfort from "./data/songsForComfort";
 import quotes from "./data/quotes";
 
 const client = new Client();
-const badWords = new RegExp(`${process.env.BAD_WORDS}`, "gi");
+const badWords = new RegExp(process.env.BAD_WORDS || "", "gi");
 
 client.on("ready", () => {
     console.log(`Logged in : ${client.user?.tag}`);

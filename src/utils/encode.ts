@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
-const ENCRYPT_KEY = "aDogWlsHxuRWLMwz5zkVguZboXn9CXYJ";
+const ENCRYPT_KEY = process.env.ENCRYPT_KEY || "";
 
 export function encrypt(text: string) {
     const iv = randomBytes(16);
