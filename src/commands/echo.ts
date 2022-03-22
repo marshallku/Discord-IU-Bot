@@ -15,8 +15,8 @@ export default function echoToChannel({
         return;
     }
 
-    if (content.slice(-3) === "-지워") {
-        channel.send(content.slice(0, -3).replace("말해 ", "")).then(() => {
+    if (content.endsWith("지워")) {
+        channel.send(content.slice(0, -2).replace("말해 ", "")).then(() => {
             try {
                 msg.delete();
             } catch (err) {
