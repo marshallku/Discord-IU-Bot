@@ -21,7 +21,6 @@ import {
     sendLotsResultToChannel,
     sendRockPaperScissorsToUser,
 } from "./commands/game";
-import { banUser, kickUser, updateRole } from "./commands/moderate";
 import files from "./data/files";
 import songsForComfort from "./data/songsForComfort";
 import quotes from "./data/quotes";
@@ -159,15 +158,6 @@ client.on("message", async (msg: Message) => {
         sendRockPaperScissorsToUser(msg);
     } else if (content.startsWith("제비뽑기")) {
         sendLotsResultToChannel(msg, channel);
-    }
-
-    // Moderation
-    else if (content.startsWith("역할")) {
-        updateRole({ msg, channel, content });
-    } else if (content.startsWith("밴")) {
-        banUser({ msg, channel, content });
-    } else if (content.startsWith("내쫓아")) {
-        kickUser({ msg, channel, content });
     } else {
         msg.react("❌").then(() => {
             msg.reply(
