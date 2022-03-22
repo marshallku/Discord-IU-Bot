@@ -79,6 +79,6 @@ export function sendLotsResultToChannel(msg: Message, channel: Channel) {
     } else {
         const randomUser = pickRandom(users.array());
 
-        channel.send(`당첨! 🎉<@${randomUser}>🎉`);
+        channel.send(`당첨! 🎉${randomUser}🎉`);
     }
 }
