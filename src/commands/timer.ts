@@ -1,9 +1,5 @@
 import { Message } from "discord.js";
-import parseTime, {
-    HOUR_TO_MS,
-    MINUTE_TO_MS,
-    SECOND_TO_MS,
-} from "../utils/time";
+import parseTime, { HOUR_TO_MS, MINUTE_TO_MS } from "../utils/time";
 
 export default function sendTimerToUser(msg: Message, content: string) {
     const time = content.replace("타이머 ", "");
@@ -19,17 +15,15 @@ export default function sendTimerToUser(msg: Message, content: string) {
         return;
     }
 
-    msg.reply(`${parsedTime / SECOND_TO_MS}초 뒤에 알려드릴게요! ⏲️`).then(
-        () => {
-            if (5 * MINUTE_TO_MS <= parsedTime) {
-                setTimeout(() => {
-                    msg.reply("1분 남았어요! 🏃");
-                }, parsedTime - 1 * MINUTE_TO_MS);
-            }
-
+    msg.reply(`${time} 뒤에 알려드릴게요! ⏲️`).then(() => {
+        if (5 * MINUTE_TO_MS <= parsedTime) {
             setTimeout(() => {
-                msg.reply("설정한 시간이 끝났어요! 🔔");
-            }, parsedTime);
+                msg.reply("1분 남았어요! 🏃");
+            }, parsedTime - 1 * MINUTE_TO_MS);
         }
-    );
+
+        setTimeout(() => {
+            msg.reply("설정한 시간이 끝났어요! 🔔");
+        }, parsedTime);
+    });
 }
