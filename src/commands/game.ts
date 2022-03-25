@@ -76,9 +76,10 @@ export function sendLotsResultToChannel(msg: Message, channel: Channel) {
 
     if (size < 2) {
         msg.reply("2인 이상 언급해주세요!");
-    } else {
-        const randomUser = pickRandom(users.array());
-
-        channel.send(`당첨! 🎉${randomUser}🎉`);
+        return;
     }
+
+    const randomUser = pickRandom(users.array());
+
+    channel.send(`당첨! 🎉${randomUser}🎉`);
 }

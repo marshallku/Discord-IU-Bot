@@ -17,7 +17,8 @@ export default function echoToChannel({
 
     if (content[content.length - 1] === "지워") {
         channel.send(content.slice(0, -1).join(" "));
-    } else {
-        channel.send(content.join(" "));
+        return;
     }
+
+    channel.send(content.join(" "));
 }
