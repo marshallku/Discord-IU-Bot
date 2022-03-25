@@ -1,8 +1,11 @@
 import { Message } from "discord.js";
 import { decrypt, encrypt } from "../utils/encode";
 
-export default function sendEncodeResultToUser(msg: Message, content: string) {
-    const [, action, ...rest] = content.split(" ");
+export default function sendEncodeResultToUser(
+    msg: Message,
+    content: string[]
+) {
+    const [action, ...rest] = content;
     const text = rest.join(" ");
 
     if (action === "생성") {

@@ -8,11 +8,10 @@ const TIME_TO_NUMBER = {
     시간: HOUR_TO_MS,
 };
 
-export default function parseTime(text: string) {
+export default function parseTime(stringArray: string[]) {
     const timeRegex = /^([0-9]+)(분|초|시간)$/;
 
-    return text
-        .split(" ")
+    return stringArray
         .map((x) => x.match(timeRegex) || [])
         .filter((x) => x.length > 0)
         .map((matchArray) => {

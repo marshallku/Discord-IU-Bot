@@ -1,9 +1,8 @@
 import { Message } from "discord.js";
 import parseTime, { HOUR_TO_MS, MINUTE_TO_MS } from "../utils/time";
 
-export default function sendTimerToUser(msg: Message, content: string) {
-    const time = content.replace("타이머 ", "");
-    const parsedTime = parseTime(time);
+export default function sendTimerToUser(msg: Message, content: string[]) {
+    const parsedTime = parseTime(content);
 
     if (parsedTime <= 0) {
         msg.reply("올바른 시간을 입력해주세요.");
@@ -15,7 +14,7 @@ export default function sendTimerToUser(msg: Message, content: string) {
         return;
     }
 
-    msg.reply(`${time} 뒤에 알려드릴게요! ⏲️`).then(() => {
+    msg.reply(`${content.join(" ")} 뒤에 알려드릴게요! ⏲️`).then(() => {
         if (5 * MINUTE_TO_MS <= parsedTime) {
             setTimeout(() => {
                 msg.reply("1분 남았어요! 🏃");

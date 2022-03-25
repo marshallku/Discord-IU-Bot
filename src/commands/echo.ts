@@ -8,15 +8,15 @@ export default function echoToChannel({
 }: {
     msg: Message;
     channel: Channel;
-    content: string;
+    content: string[];
 }) {
-    if (content.split(" ").length < 2) {
+    if (content.length <= 0) {
         msg.reply("``지은아 말해 [말할 내용]``이 올바른 사용법이에요.");
         return;
     }
 
-    if (content.endsWith("지워")) {
-        channel.send(content.slice(0, -2).replace("말해 ", "")).then(() => {
+    if (content[content.length - 1] === "지워") {
+        channel.send(content.slice(0, -1).join(" ")).then(() => {
             try {
                 msg.delete();
             } catch (err) {
@@ -26,6 +26,6 @@ export default function echoToChannel({
             }
         });
     } else {
-        channel.send(content.replace("말해 ", ""));
+        channel.send(content.join(" "));
     }
 }

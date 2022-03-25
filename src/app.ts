@@ -46,13 +46,13 @@ client.on("message", async (msg: Message) => {
         return;
     }
 
-    const content = msg.content.replace(prefix, "");
+    const fullContent = msg.content.replace(prefix, "");
 
     // bad word blocker
-    if (badWords.test(content)) {
+    if (badWords.test(fullContent)) {
         const { id, username, discriminator } = author;
 
-        console.table({ id, username, discriminator, content });
+        console.table({ id, username, discriminator, content: fullContent });
         msg.reply(
             "바르고 고운 말 사용하기!\n지속해서 사용하면 관리자에 의해 차단될 수 있습니다."
         );
@@ -60,11 +60,11 @@ client.on("message", async (msg: Message) => {
         return;
     }
 
-    if (content.endsWith("지워")) {
+    if (fullContent.endsWith("지워")) {
         deleteMessage(msg, channel);
     }
 
-    const [command] = content.split(" ");
+    const [command, ...content] = fullContent.split(" ");
 
     switch (command) {
         case "":

@@ -3,11 +3,11 @@ import { evaluate, format } from "mathjs";
 import { sortArray } from "../utils/array";
 import parse from "../utils/parse";
 
-export function sendSortResultToUser(msg: Message, content: string) {
-    const arrRegex = content.match(/\[(.*)\]/g);
+export function sendSortResultToUser(msg: Message, content: string[]) {
+    const arrRegex = content.join(" ").match(/\[(.*)\]/g);
 
     if (arrRegex) {
-        const array = arrRegex[0];
+        const [array] = arrRegex;
         const start = new Date().getTime();
         const parsed = parse(array);
 
@@ -26,8 +26,8 @@ export function sendSortResultToUser(msg: Message, content: string) {
     }
 }
 
-export function sendRandomNumberToUser(msg: Message, content: string) {
-    const [, minString, maxString] = content.split(" ");
+export function sendRandomNumberToUser(msg: Message, content: string[]) {
+    const [minString, maxString] = content;
     const min = +minString;
     const max = +maxString;
 
@@ -41,8 +41,8 @@ export function sendRandomNumberToUser(msg: Message, content: string) {
     msg.reply(Math.round(Math.random() * (max - min)) + min);
 }
 
-export function sendCalculationResultToUser(msg: Message, content: string) {
-    const formula = content.slice(3);
+export function sendCalculationResultToUser(msg: Message, content: string[]) {
+    const formula = content.join(" ");
 
     if (formula) {
         try {
@@ -61,11 +61,10 @@ export function sendCalculationResultToUser(msg: Message, content: string) {
     }
 }
 
-export function sendUnitTransformResultToUser(msg: Message, content: string) {
-    const split = content.replace("단위 변환", "단위변환").split(" ");
-    if (split.length === 3) {
+export function sendUnitTransformResultToUser(msg: Message, content: string[]) {
+    if (2 <= content.length) {
         try {
-            msg.reply(format(evaluate(`${split[1]} to ${split[2]}`)));
+            msg.reply(format(evaluate(`${content[0]} to ${content[1]}`)));
         } catch (err) {
             msg.reply("올바른 단위를 입력해주세요.");
         }
