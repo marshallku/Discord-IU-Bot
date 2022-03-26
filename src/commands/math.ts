@@ -1,7 +1,6 @@
 import { Message } from "discord.js";
 import { evaluate, format } from "mathjs";
-import { sortArray } from "../utils/array";
-import parse from "../utils/parse";
+import { sortArray, parseArray } from "../utils/array";
 
 export function sendSortResultToUser(msg: Message, content: string[]) {
     const arrRegexMatches = content.join(" ").match(/\[(.*)\]/g);
@@ -13,19 +12,18 @@ export function sendSortResultToUser(msg: Message, content: string[]) {
 
     const [array] = arrRegexMatches;
     const start = new Date().getTime();
-    const parsed = parse(array);
 
-    if (!parsed) {
+    try {
+        const sorted = sortArray(parseArray(array));
+
+        msg.reply(
+            `[${sorted}]\n정렬하는데 \`\`${
+                new Date().getTime() - start
+            }ms\`\`가 소요되었어요.`
+        );
+    } catch {
         msg.reply("정렬할 수 없는 배열이에요. 😥");
     }
-
-    const sorted = sortArray(parsed);
-
-    msg.reply(
-        `[${sorted}]\n정렬하는데 \`\`${
-            new Date().getTime() - start
-        }ms\`\`가 소요되었어요.`
-    );
 }
 
 export function sendRandomNumberToUser(msg: Message, content: string[]) {

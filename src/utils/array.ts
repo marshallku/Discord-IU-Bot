@@ -1,3 +1,23 @@
+export function parseArray(string: string): (string | number)[] {
+    if (!string.startsWith("[") || !string.endsWith("]")) {
+        throw new Error("Can't parse this array");
+    }
+
+    return string
+        .slice(1, -1)
+        .split(",")
+        .map((x) => x.trim())
+        .map((x) => {
+            const number = +x;
+
+            if (Number.isNaN(number)) {
+                return x;
+            }
+
+            return number;
+        });
+}
+
 export function pickRandom<T>(array: T[]) {
     return array[Math.round(Math.random() * (array.length - 1))];
 }
