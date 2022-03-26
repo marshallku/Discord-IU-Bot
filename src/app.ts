@@ -183,3 +183,7 @@ client.on("message", async (msg: Message) => {
 });
 
 client.login(process.env.TOKEN);
+
+process.on("uncaughtException", (err) => {
+    console.error(err);
+});
